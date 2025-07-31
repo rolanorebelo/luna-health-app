@@ -1,62 +1,65 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-// Mock types - simplified for demo
-interface User {
+export interface UserProfile {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: Date;
+  firstName?: string;
+  lastName?: string;
+  age?: number;
+  reproductiveStage?: 'puberty' | 'sexually-active' | 'trying-to-conceive' | 'pregnant' | 'postpartum' | 'breastfeeding' | 'premenopausal' | 'menopausal' | 'postmenopausal';
+  healthGoals?: ('maintaining-health' | 'achieving-conception' | 'preventing-pregnancy' | 'managing-symptoms' | 'tracking-fertility' | 'hormone-balance' | 'weight-management' | 'mental-health' | 'sexual-wellness')[];
+  onboardingCompleted?: boolean;
+  race?: string;
+  location?: string;
+  medicalConditions?: string[];
+  lifestyle?: {
+    exerciseFrequency?: string;
+    sleepHours?: number;
+    stressLevel?: number;
+    smokingStatus?: string;
+    alcoholConsumption?: string;
+    dietType?: string;
+  };
+  preferences?: {
+    notifications?: {
+      periodReminders?: boolean;
+      ovulationAlerts?: boolean;
+      healthTips?: boolean;
+      appointmentReminders?: boolean;
+    };
+    privacy?: {
+      dataSharing?: boolean;
+      researchParticipation?: boolean;
+    };
+  };
   createdAt: Date;
   updatedAt: Date;
 }
 
-interface UserProfile {
-  id: string;
-  userId: string;
-  age: number;
-  reproductiveStage: string;
-  healthGoals: string[];
-  onboardingCompleted: boolean;
-  firstName?: string;
-}
-
-interface RegisterData {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: Date;
-}
-
 interface AuthState {
-  user: User | null;
-  profile: UserProfile | null;
   isAuthenticated: boolean;
+  profile: UserProfile | null;
   isLoading: boolean;
   error: string | null;
 }
 
 interface AuthActions {
   login: (email: string, password: string) => Promise<void>;
-  register: (userData: RegisterData) => Promise<void>;
+  register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   logout: () => void;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
-  checkAuth: () => Promise<void>;
   clearError: () => void;
-  setLoading: (loading: boolean) => void;
 }
 
-type AuthStoreType = AuthState & AuthActions;
+type AuthStore = AuthState & AuthActions;
 
-const useAuthStore = create<AuthStoreType>()(
+const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
       // Initial state
-      user: null,
-      profile: null,
       isAuthenticated: false,
+      profile: null,
       isLoading: false,
       error: null,
 
@@ -65,42 +68,39 @@ const useAuthStore = create<AuthStoreType>()(
         set({ isLoading: true, error: null });
         
         try {
-          // Mock API call - replace with real API
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // Mock successful login
-          const mockUser: User = {
-            id: '1',
+          // Mock API call
+          await new Promise((resolve, reject) => {
+            setTimeout(() => {
+              if (email === 'demo@luna.com' && password === 'password123') {
+                resolve(true);
+              } else {
+                reject(new Error('Invalid email or password'));
+              }
+            }, 1500);
+          });
+
+          // Mock user profile - existing user with completed onboarding
+          const profile: UserProfile = {
+            id: 'existing-user-123',
             email,
             firstName: 'Sarah',
             lastName: 'Johnson',
-            dateOfBirth: new Date('1995-06-15'),
-            createdAt: new Date(),
+            age: 28,
+            reproductiveStage: 'sexually-active',
+            healthGoals: ['maintaining-health', 'tracking-fertility'],
+            onboardingCompleted: true,
+            createdAt: new Date('2024-01-15'),
             updatedAt: new Date()
           };
 
-          const mockProfile: UserProfile = {
-            id: '1',
-            userId: '1',
-            age: 28,
-            reproductiveStage: 'sexually-active',
-            healthGoals: ['maintaining-health'],
-            onboardingCompleted: true,
-            firstName: 'Sarah'
-          };
-
           set({
-            user: mockUser,
-            profile: mockProfile,
             isAuthenticated: true,
+            profile,
             isLoading: false,
             error: null
           });
         } catch (error: any) {
           set({
-            user: null,
-            profile: null,
-            isAuthenticated: false,
             isLoading: false,
             error: error.message || 'Login failed'
           });
@@ -108,60 +108,47 @@ const useAuthStore = create<AuthStoreType>()(
         }
       },
 
-      register: async (userData: RegisterData) => {
+      register: async (email: string, password: string, firstName: string, lastName: string) => {
         set({ isLoading: true, error: null });
         
         try {
           // Mock API call
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          const mockUser: User = {
-            id: '1',
-            email: userData.email,
-            firstName: userData.firstName,
-            lastName: userData.lastName,
-            dateOfBirth: userData.dateOfBirth,
+          await new Promise((resolve, reject) => {
+            setTimeout(() => {
+              if (email === 'existing@example.com') {
+                reject(new Error('User already exists'));
+              } else {
+                resolve(true);
+              }
+            }, 1500);
+          });
+
+          // Create new user profile - onboarding NOT completed
+          const newProfile: UserProfile = {
+            id: Math.random().toString(36).substr(2, 9),
+            email,
+            firstName,
+            lastName,
+            onboardingCompleted: false, // Key: starts as false
             createdAt: new Date(),
             updatedAt: new Date()
           };
 
-          const mockProfile: UserProfile = {
-            id: '1',
-            userId: '1',
-            age: new Date().getFullYear() - userData.dateOfBirth.getFullYear(),
-            reproductiveStage: 'sexually-active',
-            healthGoals: [],
-            onboardingCompleted: false,
-            firstName: userData.firstName
-          };
-
           set({
-            user: mockUser,
-            profile: mockProfile,
             isAuthenticated: true,
+            profile: newProfile,
             isLoading: false,
             error: null
           });
+
+          console.log('Registration successful:', newProfile);
         } catch (error: any) {
           set({
-            user: null,
-            profile: null,
-            isAuthenticated: false,
             isLoading: false,
             error: error.message || 'Registration failed'
           });
           throw error;
         }
-      },
-
-      logout: () => {
-        set({
-          user: null,
-          profile: null,
-          isAuthenticated: false,
-          isLoading: false,
-          error: null
-        });
       },
 
       updateProfile: async (updates: Partial<UserProfile>) => {
@@ -172,15 +159,21 @@ const useAuthStore = create<AuthStoreType>()(
         
         try {
           // Mock API call
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 1000));
           
-          const updatedProfile = { ...profile, ...updates };
+          const updatedProfile: UserProfile = { 
+            ...profile, 
+            ...updates,
+            updatedAt: new Date()
+          };
           
           set({
             profile: updatedProfile,
             isLoading: false,
             error: null
           });
+
+          console.log('Profile updated successfully:', updatedProfile);
         } catch (error: any) {
           set({
             isLoading: false,
@@ -190,45 +183,24 @@ const useAuthStore = create<AuthStoreType>()(
         }
       },
 
-      checkAuth: async () => {
-        set({ isLoading: true });
-        
-        try {
-          // Mock auth check - in real app, this would validate token
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          // For demo, we'll just check if we have stored auth data
-          const { user, profile } = get();
-          
-          set({
-            isLoading: false,
-            error: null
-          });
-        } catch (error: any) {
-          set({
-            user: null,
-            profile: null,
-            isAuthenticated: false,
-            isLoading: false,
-            error: null
-          });
-        }
+      logout: () => {
+        set({
+          isAuthenticated: false,
+          profile: null,
+          isLoading: false,
+          error: null
+        });
       },
 
       clearError: () => {
         set({ error: null });
-      },
-
-      setLoading: (loading: boolean) => {
-        set({ isLoading: loading });
       }
     }),
     {
-      name: 'luna-auth',
+      name: 'luna-auth-storage',
       partialize: (state) => ({
-        user: state.user,
-        profile: state.profile,
-        isAuthenticated: state.isAuthenticated
+        isAuthenticated: state.isAuthenticated,
+        profile: state.profile
       })
     }
   )

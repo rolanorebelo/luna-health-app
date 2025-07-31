@@ -1,35 +1,30 @@
-import React from 'react';
-import { useLocation } from 'react-router-dom';
-import Header from './Header';
-import Navigation from './Navigation';
-import { BaseComponentProps } from '../../types';
+// Create this file: src/components/layout/Layout.tsx
 
-interface LayoutProps extends BaseComponentProps {
-  showNavigation?: boolean;
+import React from 'react';
+import Header from './Header';
+import Sidebar from './Sidebar';
+
+interface LayoutProps {
+  children: React.ReactNode;
 }
 
-const Layout: React.FC<LayoutProps> = ({ 
-  children, 
-  className = '', 
-  showNavigation = true 
-}) => {
-  const location = useLocation();
-  const isOnboarding = location.pathname === '/onboarding';
-
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className={`min-h-screen bg-gray-50 ${className}`}>
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      {!isOnboarding && <Header />}
+      <Header />
       
-      {/* Main Content */}
-      <main className={`${!isOnboarding ? 'pt-16' : ''} ${showNavigation ? 'pb-20' : ''}`}>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {children}
-        </div>
-      </main>
-
-      {/* Bottom Navigation */}
-      {showNavigation && !isOnboarding && <Navigation />}
+      <div className="flex">
+        {/* Sidebar */}
+        <Sidebar />
+        
+        {/* Main Content */}
+        <main className="flex-1 pt-16 pl-0 md:pl-64">
+          <div className="p-6">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
