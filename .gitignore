@@ -85,9 +85,20 @@ temp/
 logs
 *.log
 
-# Database
-*.sqlite
-*.db
+
+# Backend Python/DB ignores
+backend/__pycache__/
+backend/*.pyc
+backend/*.pyo
+backend/*.sqlite
+backend/*.db
+backend/.env
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/.coverage
+backend/instance/
+backend/.vscode/
+backend/venv/
 
 # Luna specific
 uploads/

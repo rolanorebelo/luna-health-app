@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, User, Eye, EyeOff, Sparkles } from 'lucide-react';
@@ -6,7 +6,7 @@ import useAuthStore from '../stores/authStore';
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const { register, isLoading, error, clearError } = useAuthStore();
+  const { register, login, isLoading, error, clearError, profile, token } = useAuthStore();
   
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -17,10 +17,13 @@ const RegisterPage: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [localError, setLocalError] = useState('');
 
+  // ...existing code...
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError('');
-    
+
     // Validation
     if (!firstName.trim()) {
       setLocalError('First name is required');
@@ -48,13 +51,24 @@ const RegisterPage: React.FC = () => {
     }
 
     try {
-      await register(email, password, firstName, lastName);
-      navigate('/onboarding');
+      await register(email, password);
+      // Immediately log in after registration
+      await login(email, password);
+      // Redirect will happen in useEffect below
     } catch (err: any) {
-      console.error('Registration failed:', err);
+      console.error('Registration or auto-login failed:', err);
     }
   };
 
+  useEffect(() => {
+    if (token && profile) {
+      if (profile.onboardingCompleted) {
+        navigate('/dashboard');
+      } else {
+        navigate('/onboarding');
+      }
+    }
+  }, [token, profile, navigate]);
   const handleInputChange = () => {
     if (error) clearError();
     if (localError) setLocalError('');

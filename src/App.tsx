@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import useAuthStore from './stores/authStore';
 
@@ -30,7 +30,8 @@ const LoadingScreen: React.FC = () => (
 
 // Debug component (optional - for testing)
 const FlowDebug: React.FC = () => {
-  const { profile, isAuthenticated, logout } = useAuthStore();
+  const { profile, logout, token } = useAuthStore();
+  const isAuthenticated = !!token;
 
   if (process.env.NODE_ENV !== 'development') return null;
 
@@ -54,7 +55,15 @@ const FlowDebug: React.FC = () => {
 };
 
 function App() {
-  const { isAuthenticated, profile, isLoading } = useAuthStore();
+  const { profile, isLoading, token, fetchProfile } = useAuthStore();
+  const isAuthenticated = !!token;
+
+  // Fetch profile on app load if token exists but profile is null
+  useEffect(() => {
+    if (token && !profile) {
+      fetchProfile();
+    }
+  }, [token, profile, fetchProfile]);
 
   // Show loading screen while checking auth state
   if (isLoading) {
@@ -77,60 +86,13 @@ function App() {
           </>
         ) : (
           <>
-            {/* ONBOARDING CHECK - If authenticated but onboarding not complete */}
-            {!profile?.onboardingCompleted ? (
-              <>
-                <Route path="/onboarding" element={<OnboardingPage />} />
-                {/* Redirect any other routes to onboarding */}
-                <Route path="*" element={<Navigate to="/onboarding" replace />} />
-              </>
-            ) : (
-              <>
-                {/* MAIN APP ROUTES - Only available when authenticated AND onboarding complete */}
-                <Route path="/" element={
-                  <Layout>
-                    <HomePage />
-                  </Layout>
-                } />
-                
-                <Route path="/dashboard" element={
-                  <Layout>
-                    <DashboardPage />
-                  </Layout>
-                } />
-                
-                <Route path="/cycle" element={
-                  <Layout>
-                    <CyclePage />
-                  </Layout>
-                } />
-                
-                <Route path="/photo-analysis" element={
-                  <Layout>
-                    <PhotoAnalysisPage />
-                  </Layout>
-                } />
-                
-                <Route path="/chat" element={
-                  <Layout>
-                    <ChatPage />
-                  </Layout>
-                } />
-                
-                <Route path="/profile" element={
-                  <Layout>
-                    <ProfilePage />
-                  </Layout>
-                } />
-                
-                {/* Redirect any unknown routes to home */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </>
-            )}
+            {/* FORCE ONBOARDING PAGE FOR ALL AUTHENTICATED USERS */}
+            <Route path="/onboarding" element={<OnboardingPage />} />
+            {/* Redirect any other routes to onboarding */}
+            <Route path="*" element={<Navigate to="/onboarding" replace />} />
           </>
         )}
       </Routes>
-      
       {/* Debug component - only shows in development */}
       <FlowDebug />
     </Router>

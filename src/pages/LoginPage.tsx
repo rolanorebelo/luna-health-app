@@ -1,27 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, Sparkles } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
 
+
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login, isLoading, error, clearError } = useAuthStore();
-  
+  const { login, isLoading, error, clearError, profile, token, isProfileLoading } = useAuthStore();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     try {
       await login(email, password);
-      navigate('/');
+      // Redirect will happen in useEffect below
     } catch (err: any) {
       console.error('Login failed:', err);
     }
   };
+
+  useEffect(() => {
+    // Debug: log auth state to trace redirect logic
+    console.log('[LoginPage] token:', token, 'profile:', profile, 'isProfileLoading:', isProfileLoading);
+    if (token && !isProfileLoading && profile) {
+      // Always redirect to onboarding for now (ignore onboarding flag)
+      navigate('/onboarding');
+    }
+  }, [token, profile, isProfileLoading, navigate]);
 
   const handleInputChange = () => {
     if (error) clearError();

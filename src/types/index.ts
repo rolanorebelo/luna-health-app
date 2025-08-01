@@ -19,6 +19,11 @@ export interface UserProfile {
   medicalHistory: MedicalCondition[];
   preferences: UserPreferences;
   onboardingCompleted: boolean;
+  firstName: string;
+  lastName: string;
+  email: string;
+  createdAt?: string;
+  location?: string;
 }
 
 export type ReproductiveStage = 

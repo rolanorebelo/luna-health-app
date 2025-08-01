@@ -1,104 +1,76 @@
+
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export interface UserProfile {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  age?: number;
-  reproductiveStage?: 'puberty' | 'sexually-active' | 'trying-to-conceive' | 'pregnant' | 'postpartum' | 'breastfeeding' | 'premenopausal' | 'menopausal' | 'postmenopausal';
-  healthGoals?: ('maintaining-health' | 'achieving-conception' | 'preventing-pregnancy' | 'managing-symptoms' | 'tracking-fertility' | 'hormone-balance' | 'weight-management' | 'mental-health' | 'sexual-wellness')[];
-  onboardingCompleted?: boolean;
-  race?: string;
-  location?: string;
-  medicalConditions?: string[];
-  lifestyle?: {
-    exerciseFrequency?: string;
-    sleepHours?: number;
-    stressLevel?: number;
-    smokingStatus?: string;
-    alcoholConsumption?: string;
-    dietType?: string;
+
+import type { UserProfile as CanonicalUserProfile } from '../types/index';
+import { registerUser, loginUser, fetchProfile } from '../services/authApi';
+
+// Helper to map backend snake_case to camelCase
+function mapProfileFromBackend(profile: any): CanonicalUserProfile {
+  return {
+    id: profile.id,
+    userId: profile.user_id,
+    age: profile.age,
+    race: profile.race,
+    reproductiveStage: profile.reproductive_stage,
+    healthGoals: profile.health_goals || [],
+    medicalHistory: profile.medical_history || {},
+    preferences: profile.preferences || {},
+    onboardingCompleted: Boolean(profile.onboarding_completed),
+    firstName: profile.first_name,
+    lastName: profile.last_name,
+    email: profile.email,
+    createdAt: profile.created_at,
+    location: profile.location,
   };
-  preferences?: {
-    notifications?: {
-      periodReminders?: boolean;
-      ovulationAlerts?: boolean;
-      healthTips?: boolean;
-      appointmentReminders?: boolean;
-    };
-    privacy?: {
-      dataSharing?: boolean;
-      researchParticipation?: boolean;
-    };
-  };
-  createdAt: Date;
-  updatedAt: Date;
 }
 
+
 interface AuthState {
-  isAuthenticated: boolean;
-  profile: UserProfile | null;
+  token: string | null;
+  profile: CanonicalUserProfile | null;
   isLoading: boolean;
+  isProfileLoading: boolean;
   error: string | null;
 }
 
+
 interface AuthActions {
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
+  fetchProfile: () => Promise<void>;
   logout: () => void;
-  updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   clearError: () => void;
 }
 
+
 type AuthStore = AuthState & AuthActions;
+
 
 const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
       // Initial state
-      isAuthenticated: false,
+      token: null,
       profile: null,
       isLoading: false,
+      isProfileLoading: false,
       error: null,
 
       // Actions
       login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
-        
         try {
-          // Mock API call
-          await new Promise((resolve, reject) => {
-            setTimeout(() => {
-              if (email === 'demo@luna.com' && password === 'password123') {
-                resolve(true);
-              } else {
-                reject(new Error('Invalid email or password'));
-              }
-            }, 1500);
-          });
-
-          // Mock user profile - existing user with completed onboarding
-          const profile: UserProfile = {
-            id: 'existing-user-123',
-            email,
-            firstName: 'Sarah',
-            lastName: 'Johnson',
-            age: 28,
-            reproductiveStage: 'sexually-active',
-            healthGoals: ['maintaining-health', 'tracking-fertility'],
-            onboardingCompleted: true,
-            createdAt: new Date('2024-01-15'),
-            updatedAt: new Date()
-          };
-
+          const result = await loginUser(email, password);
           set({
-            isAuthenticated: true,
-            profile,
+            token: result.access_token,
             isLoading: false,
             error: null
           });
+          // Fetch profile after login
+          await get().fetchProfile();
         } catch (error: any) {
           set({
             isLoading: false,
@@ -108,40 +80,11 @@ const useAuthStore = create<AuthStore>()(
         }
       },
 
-      register: async (email: string, password: string, firstName: string, lastName: string) => {
+      register: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
-        
         try {
-          // Mock API call
-          await new Promise((resolve, reject) => {
-            setTimeout(() => {
-              if (email === 'existing@example.com') {
-                reject(new Error('User already exists'));
-              } else {
-                resolve(true);
-              }
-            }, 1500);
-          });
-
-          // Create new user profile - onboarding NOT completed
-          const newProfile: UserProfile = {
-            id: Math.random().toString(36).substr(2, 9),
-            email,
-            firstName,
-            lastName,
-            onboardingCompleted: false, // Key: starts as false
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-
-          set({
-            isAuthenticated: true,
-            profile: newProfile,
-            isLoading: false,
-            error: null
-          });
-
-          console.log('Registration successful:', newProfile);
+          await registerUser(email, password);
+          set({ isLoading: false, error: null });
         } catch (error: any) {
           set({
             isLoading: false,
@@ -151,41 +94,27 @@ const useAuthStore = create<AuthStore>()(
         }
       },
 
-      updateProfile: async (updates: Partial<UserProfile>) => {
-        const { profile } = get();
-        if (!profile) throw new Error('No profile found');
-
-        set({ isLoading: true, error: null });
-        
+      fetchProfile: async () => {
+        const { token, logout } = get();
+        if (!token) throw new Error('No token found');
+        set({ isProfileLoading: true, error: null });
         try {
-          // Mock API call
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          const updatedProfile: UserProfile = { 
-            ...profile, 
-            ...updates,
-            updatedAt: new Date()
-          };
-          
-          set({
-            profile: updatedProfile,
-            isLoading: false,
-            error: null
-          });
-
-          console.log('Profile updated successfully:', updatedProfile);
+          const profileRaw = await fetchProfile(token);
+          const profile = mapProfileFromBackend(profileRaw);
+          set({ profile, isProfileLoading: false, error: null });
         } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.message || 'Profile update failed'
-          });
+          set({ isProfileLoading: false, error: error.message || 'Failed to fetch profile' });
+          // Auto-logout if unauthorized or forbidden
+          if (error?.message?.toLowerCase().includes('unauthorized') || error?.message?.toLowerCase().includes('forbidden')) {
+            logout();
+          }
           throw error;
         }
       },
 
       logout: () => {
         set({
-          isAuthenticated: false,
+          token: null,
           profile: null,
           isLoading: false,
           error: null
@@ -194,16 +123,24 @@ const useAuthStore = create<AuthStore>()(
 
       clearError: () => {
         set({ error: null });
-      }
+      },
+
+      // (isAuthenticated getter will be attached below)
     }),
     {
       name: 'luna-auth-storage',
       partialize: (state) => ({
-        isAuthenticated: state.isAuthenticated,
-        profile: state.profile
+        token: state.token
       })
     }
   )
 );
+
+// Attach isAuthenticated as a derived getter on the store
+Object.defineProperty(useAuthStore, 'isAuthenticated', {
+  get() {
+    return !!useAuthStore.getState().token;
+  },
+});
 
 export default useAuthStore;

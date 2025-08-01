@@ -32,7 +32,7 @@ interface EditingState {
 }
 
 const ProfilePage: React.FC = () => {
-  const { profile, updateProfile, logout, isLoading } = useAuthStore();
+  const { profile, logout, isLoading } = useAuthStore();
   const [editing, setEditing] = useState<EditingState>({ section: null, data: {} });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -68,16 +68,7 @@ const ProfilePage: React.FC = () => {
     setEditing({ section: null, data: {} });
   };
 
-  const saveChanges = async () => {
-    if (!editing.section) return;
-
-    try {
-      await updateProfile(editing.data);
-      setEditing({ section: null, data: {} });
-    } catch (error) {
-      console.error('Failed to update profile:', error);
-    }
-  };
+  // Profile editing is now backend-driven only. Remove saveChanges.
 
   const handleInputChange = (field: string, value: any) => {
     setEditing(prev => ({
@@ -110,7 +101,7 @@ const ProfilePage: React.FC = () => {
     if (profile?.age) score += 15;
     if (profile?.reproductiveStage) score += 20;
     if (profile?.healthGoals && profile.healthGoals.length > 0) score += 25;
-    if (profile?.lifestyle) score += 20;
+    // lifestyle removed from profile type
     if (profile?.preferences) score += 10;
     return Math.min(score, 100);
   };
@@ -152,7 +143,7 @@ const ProfilePage: React.FC = () => {
                 }
               </p>
               <p className="text-purple-100 text-sm">
-                Member since {formatDate(profile.createdAt)}
+                Member since {formatDate(profile.createdAt ?? '')}
               </p>
             </div>
           </div>
@@ -301,14 +292,7 @@ const ProfilePage: React.FC = () => {
             </div>
 
             <div className="flex space-x-3">
-              <button
-                onClick={saveChanges}
-                disabled={isLoading}
-                className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-              >
-                <Save className="w-4 h-4" />
-                <span>Save</span>
-              </button>
+              {/* Save button removed: profile editing is backend-driven only */}
               <button
                 onClick={cancelEditing}
                 className="flex items-center space-x-2 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
@@ -387,14 +371,7 @@ const ProfilePage: React.FC = () => {
             </div>
 
             <div className="flex space-x-3">
-              <button
-                onClick={saveChanges}
-                disabled={isLoading}
-                className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-              >
-                <Save className="w-4 h-4" />
-                <span>Save</span>
-              </button>
+              {/* Save button removed: profile editing is backend-driven only */}
               <button
                 onClick={cancelEditing}
                 className="flex items-center space-x-2 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
@@ -469,14 +446,7 @@ const ProfilePage: React.FC = () => {
             </div>
 
             <div className="flex space-x-3">
-              <button
-                onClick={saveChanges}
-                disabled={isLoading}
-                className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-              >
-                <Save className="w-4 h-4" />
-                <span>Save</span>
-              </button>
+              {/* Save button removed: profile editing is backend-driven only */}
               <button
                 onClick={cancelEditing}
                 className="flex items-center space-x-2 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ChevronLeft, Heart, User, Calendar, Target, Stethoscope, Settings, CheckCircle, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../stores/authStore';
+import { submitOnboarding } from '../services/onboardingApi';
 
 interface OnboardingData {
   personalInfo: {
@@ -52,7 +53,7 @@ interface OnboardingData {
 
 const OnboardingPage: React.FC = () => {
   const navigate = useNavigate();
-  const { updateProfile } = useAuthStore();
+  const { fetchProfile } = useAuthStore();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<OnboardingData>({
     personalInfo: {
@@ -203,17 +204,30 @@ const OnboardingPage: React.FC = () => {
 
   const completeOnboarding = async () => {
     try {
-      // Update profile with onboarding data
-      await updateProfile({
-        onboardingCompleted: true,
+      // Get current user profile
+      const { token } = useAuthStore.getState();
+      if (!token) throw new Error('No token found');
+
+      // Prepare onboarding data: flat fields for API, plus full nested data
+      const onboardingPayload = {
+        first_name: formData.personalInfo.firstName,
+        last_name: formData.personalInfo.lastName,
         age: calculateAge(formData.personalInfo.dateOfBirth),
-        reproductiveStage: formData.reproductiveHealth.stage as any,
-        healthGoals: formData.healthGoals as any,
-        firstName: formData.personalInfo.firstName
-      });
-      
-      // Navigate to home page
-      navigate('/');
+        reproductive_stage: formData.reproductiveHealth.stage,
+        health_goals: formData.healthGoals,
+        onboarding_completed: true,
+        // Send the full nested onboarding data for backend storage
+        onboarding_data: formData
+      };
+
+      await submitOnboarding(token, onboardingPayload);
+
+      // Refresh profile from backend
+      await fetchProfile();
+      // Add a small delay to ensure state is updated
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 200);
     } catch (error) {
       console.error('Failed to complete onboarding:', error);
     }

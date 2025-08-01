@@ -1,0 +1,4 @@
+DATABASE_URL = "postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/luna_health"
+JWT_SECRET_KEY = "your-secret-key"
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRATION_MINUTES = 60

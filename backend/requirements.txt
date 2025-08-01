@@ -1,0 +1,10 @@
+# Required for FastAPI form data (OAuth2PasswordRequestForm)
+python-multipart
+sqlalchemy
+asyncpg
+psycopg2-binary
+python-jose[cryptography]
+passlib[bcrypt]
+fastapi
+uvicorn
+pydantic
