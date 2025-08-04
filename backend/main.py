@@ -35,13 +35,12 @@ class UserRegister(BaseModel):
     username: str
     password: str
 
-class OnboardingData(BaseModel):
-    first_name: str = ""
-    last_name: str = ""
-    age: int = 0
-    reproductive_stage: str = ""
-    health_goals: list = []
-    onboarding_completed: bool = False
+from typing import Any, Dict
+
+# Accepts the full onboarding_data object from the frontend
+class OnboardingPayload(BaseModel):
+    onboarding_data: Dict[str, Any]
+    onboarding_completed: bool = True
 
 
 # Expanded UserProfile for frontend
@@ -144,9 +143,10 @@ async def get_profile(current_user: User = Depends(get_current_user)):
 
 # Save all onboarding fields in onboarding JSON and set onboarding_completed
 @app.post("/onboarding")
-async def onboarding(data: OnboardingData, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    current_user.onboarding = data.dict()
-    current_user.onboarding_completed = True
+async def onboarding(payload: OnboardingPayload, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    # Save the full nested onboarding_data object
+    current_user.onboarding = payload.onboarding_data
+    current_user.onboarding_completed = payload.onboarding_completed
     db.add(current_user)
     await db.commit()
     await db.refresh(current_user)

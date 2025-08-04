@@ -86,10 +86,27 @@ function App() {
           </>
         ) : (
           <>
-            {/* FORCE ONBOARDING PAGE FOR ALL AUTHENTICATED USERS */}
+        {/* AUTHENTICATED ROUTES */}
+        {profile?.onboardingCompleted ? (
+          <>
+            <Route path="/dashboard" element={<Layout><DashboardPage /></Layout>} />
+            <Route path="/cycle" element={<Layout><CyclePage /></Layout>} />
+            <Route path="/photo-analysis" element={<Layout><PhotoAnalysisPage /></Layout>} />
+            <Route path="/chat" element={<Layout><ChatPage /></Layout>} />
+            <Route path="/profile" element={<Layout><ProfilePage /></Layout>} />
+            {/* Default route for authenticated users */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            {/* Redirect unknown routes to dashboard */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </>
+        ) : (
+          <>
+            {/* Onboarding required */}
             <Route path="/onboarding" element={<OnboardingPage />} />
             {/* Redirect any other routes to onboarding */}
             <Route path="*" element={<Navigate to="/onboarding" replace />} />
+          </>
+        )}
           </>
         )}
       </Routes>
