@@ -1,6 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { analyzeHealthImage } from '../services/healthApi';
 import { Camera, Upload, X, CheckCircle, AlertTriangle, Info, Zap, Eye, Microscope, Sparkles } from 'lucide-react';
+
 // Mock user profile for demo
 const mockProfile = {
   firstName: 'Sarah',
@@ -8,27 +10,13 @@ const mockProfile = {
   reproductiveStage: 'sexually-active'
 };
 
-interface AnalysisResult {
-  type: 'skin' | 'discharge' | 'symptom' | 'general';
-  findings: {
-    condition: string;
-    confidence: number;
-    severity: 'normal' | 'mild' | 'moderate' | 'concerning';
-    description: string;
-  }[];
-  recommendations: string[];
-  needsAttention: boolean;
-  suggestDoctorVisit: boolean;
-  overallAssessment: string;
-}
-
 const PhotoAnalysisPage: React.FC = () => {
   const profile = mockProfile;
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [analysisType, setAnalysisType] = useState<'skin' | 'discharge' | 'symptom' | 'general'>('skin');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [showCamera, setShowCamera] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -127,111 +115,23 @@ const PhotoAnalysisPage: React.FC = () => {
     if (!selectedImage) return;
 
     setIsAnalyzing(true);
-    
-    // Simulate AI analysis with realistic delay
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    setAnalysisResult(null);
 
-    // Mock analysis results based on type and user profile
-    const mockResults: Record<string, AnalysisResult> = {
-      skin: {
-        type: 'skin',
-        findings: [
-          {
-            condition: 'Hormonal Acne',
-            confidence: 87,
-            severity: 'mild',
-            description: 'Mild hormonal acne consistent with your cycle phase. Common during luteal phase.'
-          },
-          {
-            condition: 'Skin Texture',
-            confidence: 92,
-            severity: 'normal',
-            description: 'Overall skin texture appears healthy with good hydration levels.'
-          }
-        ],
-        recommendations: [
-          'Consider gentle salicylic acid cleanser 2-3 times per week',
-          'Increase water intake during luteal phase',
-          'Avoid touching face, especially around cycle day 21-28',
-          'Consider zinc supplement (consult healthcare provider first)'
-        ],
-        needsAttention: false,
-        suggestDoctorVisit: false,
-        overallAssessment: 'Your skin shows typical hormonal fluctuations. The mild acne is likely cycle-related and should improve with consistent skincare routine.'
-      },
-      discharge: {
-        type: 'discharge',
-        findings: [
-          {
-            condition: 'Normal Ovulatory Discharge',
-            confidence: 94,
-            severity: 'normal',
-            description: 'Clear, stretchy discharge consistent with ovulation phase.'
-          }
-        ],
-        recommendations: [
-          'This appears to be normal fertile cervical mucus',
-          'Great time for conception if trying to get pregnant',
-          'Use protection if avoiding pregnancy',
-          'Continue monitoring changes throughout cycle'
-        ],
-        needsAttention: false,
-        suggestDoctorVisit: false,
-        overallAssessment: 'Healthy ovulatory discharge indicating peak fertility. No concerns detected.'
-      },
-      symptom: {
-        type: 'symptom',
-        findings: [
-          {
-            condition: 'Mild Inflammation',
-            confidence: 76,
-            severity: 'mild',
-            description: 'Slight redness that may indicate minor irritation or sensitivity.'
-          }
-        ],
-        recommendations: [
-          'Monitor for changes over 24-48 hours',
-          'Avoid harsh soaps or fragranced products',
-          'Wear breathable cotton underwear',
-          'Consider cooling compress if discomfort persists'
-        ],
-        needsAttention: true,
-        suggestDoctorVisit: false,
-        overallAssessment: 'Minor irritation detected. Monitor symptoms and consult healthcare provider if worsening.'
-      },
-      general: {
-        type: 'general',
-        findings: [
-          {
-            condition: 'Overall Health Indicators',
-            confidence: 89,
-            severity: 'normal',
-            description: 'Visual indicators suggest good overall health and wellness.'
-          }
-        ],
-        recommendations: [
-          'Continue current health practices',
-          'Maintain balanced diet rich in omega-3s',
-          'Stay hydrated (8-10 glasses water daily)',
-          'Regular exercise supports hormonal balance'
-        ],
-        needsAttention: false,
-        suggestDoctorVisit: false,
-        overallAssessment: 'Excellent overall health indicators. Keep up the great work with your wellness routine!'
-      }
-    };
-
-    setAnalysisResult(mockResults[analysisType]);
-    setIsAnalyzing(false);
-  };
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'normal': return 'text-green-600 bg-green-50';
-      case 'mild': return 'text-yellow-600 bg-yellow-50';
-      case 'moderate': return 'text-orange-600 bg-orange-50';
-      case 'concerning': return 'text-red-600 bg-red-50';
-      default: return 'text-gray-600 bg-gray-50';
+    try {
+      const result = await analyzeHealthImage(
+        selectedImage,
+        analysisType,
+        undefined, // or pass symptoms if you have them
+        profile?.age,
+        profile?.reproductiveStage
+      );
+      setAnalysisResult(result);
+      // console.log(result); // Uncomment to debug API response
+    } catch (err) {
+      alert('Analysis failed. Please try again.');
+      setAnalysisResult(null);
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -484,37 +384,51 @@ const PhotoAnalysisPage: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                <div className={`p-4 rounded-xl ${
-                  analysisResult.needsAttention ? 'bg-yellow-50 border border-yellow-200' : 'bg-green-50 border border-green-200'
-                }`}>
-                  <div className="flex items-center space-x-2 mb-2">
-                    {analysisResult.needsAttention ? (
-                      <AlertTriangle className="w-5 h-5 text-yellow-600" />
-                    ) : (
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                    )}
-                    <h4 className={`font-semibold ${
-                      analysisResult.needsAttention ? 'text-yellow-800' : 'text-green-800'
-                    }`}>
-                      {analysisResult.needsAttention ? 'Attention Needed' : 'All Clear'}
-                    </h4>
-                  </div>
-                  <p className={`text-sm ${
-                    analysisResult.needsAttention ? 'text-yellow-700' : 'text-green-700'
+                {/* Show health assessment overview and severity */}
+                {analysisResult.health_assessment && (
+                  <div className={`p-4 rounded-xl ${
+                    analysisResult.health_assessment.severity === 'low'
+                      ? 'bg-green-50 border border-green-200'
+                      : 'bg-yellow-50 border border-yellow-200'
                   }`}>
-                    {analysisResult.overallAssessment}
-                  </p>
-                </div>
+                    <div className="flex items-center space-x-2 mb-2">
+                      {analysisResult.health_assessment.severity === 'low' ? (
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                      )}
+                      <h4 className={`font-semibold ${
+                        analysisResult.health_assessment.severity === 'low'
+                          ? 'text-green-800'
+                          : 'text-yellow-800'
+                      }`}>
+                        {analysisResult.health_assessment.severity === 'low'
+                          ? 'All Clear'
+                          : 'Attention Needed'}
+                      </h4>
+                    </div>
+                    <p className={`text-sm ${
+                      analysisResult.health_assessment.severity === 'low'
+                        ? 'text-green-700'
+                        : 'text-yellow-700'
+                    }`}>
+                      {analysisResult.health_assessment.condition_overview}
+                    </p>
+                  </div>
+                )}
 
-                {analysisResult.suggestDoctorVisit && (
+                {/* Doctor visit recommendation */}
+                {analysisResult.health_assessment?.seek_care_if?.length > 0 && (
                   <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
                     <div className="flex items-center space-x-2 mb-2">
                       <AlertTriangle className="w-5 h-5 text-red-600" />
                       <h4 className="font-semibold text-red-800">Doctor Consultation Recommended</h4>
                     </div>
-                    <p className="text-sm text-red-700">
-                      Based on the analysis, we recommend consulting with a healthcare provider for further evaluation.
-                    </p>
+                    <ul className="list-disc pl-6 text-sm text-red-700">
+                      {analysisResult.health_assessment.seek_care_if.map((reason: string, idx: number) => (
+                        <li key={idx}>{reason}</li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </div>
@@ -525,25 +439,22 @@ const PhotoAnalysisPage: React.FC = () => {
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Detailed Findings</h4>
             <div className="space-y-4">
-              {analysisResult.findings.map((finding, index) => (
+              {/* Show image classifications if present */}
+              {analysisResult.image_analysis?.classifications?.map((item: any, index: number) => (
                 <div key={index} className="p-4 border border-gray-200 rounded-xl">
                   <div className="flex items-center justify-between mb-2">
-                    <h5 className="font-medium text-gray-900">{finding.condition}</h5>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getSeverityColor(finding.severity)}`}>
-                      {finding.severity.charAt(0).toUpperCase() + finding.severity.slice(1)}
+                    <h5 className="font-medium text-gray-900">{item.label}</h5>
+                    <span className="px-3 py-1 rounded-full text-xs font-medium text-purple-700 bg-purple-50">
+                      {(item.score * 100).toFixed(1)}%
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">{finding.description}</p>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs text-gray-500">Confidence:</span>
-                    <div className="flex-1 bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-purple-600 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${finding.confidence}%` }}
-                      />
-                    </div>
-                    <span className="text-xs font-medium text-gray-700">{finding.confidence}%</span>
-                  </div>
+                </div>
+              ))}
+
+              {/* Show possible causes if present */}
+              {analysisResult.health_assessment?.possible_causes?.map((cause: string, index: number) => (
+                <div key={index} className="p-2 text-sm text-gray-700">
+                  • {cause}
                 </div>
               ))}
             </div>
@@ -553,7 +464,7 @@ const PhotoAnalysisPage: React.FC = () => {
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Personalized Recommendations</h4>
             <div className="space-y-3">
-              {analysisResult.recommendations.map((rec, index) => (
+              {analysisResult.health_assessment?.self_care?.map((rec: string, index: number) => (
                 <div key={index} className="flex items-start space-x-3">
                   <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                     <span className="text-xs font-medium text-purple-600">{index + 1}</span>
@@ -561,6 +472,14 @@ const PhotoAnalysisPage: React.FC = () => {
                   <p className="text-sm text-gray-700">{rec}</p>
                 </div>
               ))}
+              {/* Disclaimers */}
+              {analysisResult.health_assessment?.disclaimers?.length > 0 && (
+                <div className="mt-4 text-xs text-gray-500 space-y-1">
+                  {analysisResult.health_assessment.disclaimers.map((d: string, i: number) => (
+                    <div key={i}>* {d}</div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
