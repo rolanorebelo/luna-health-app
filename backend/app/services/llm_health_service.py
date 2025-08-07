@@ -161,3 +161,190 @@ class LLMHealthService:
                 "seek_care_if": ["Symptoms worsen", "Unusual pain or discomfort"],
                 "additional_notes": "Please consult the full response above"
             }
+    
+    async def analyze_hemoglobin_with_context(
+        self,
+        nail_analysis_result: Dict[str, Any],
+        user_symptoms: Optional[List[str]] = None,
+        user_context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Analyze hemoglobin levels with LLM and medical context"""
+        
+        # Extract hemoglobin data
+        nail_analysis = nail_analysis_result.get('nail_analysis', {})
+        avg_hemoglobin = nail_analysis.get('average_hemoglobin_g_per_L', 0)
+        num_nails = nail_analysis.get('num_nails_detected', 0)
+        
+        # Retrieve relevant medical knowledge about anemia and hemoglobin
+        hemoglobin_query = f"hemoglobin anemia iron deficiency women health {avg_hemoglobin} g/L"
+        relevant_docs = self.health_knowledge.similarity_search(hemoglobin_query, k=3)
+        
+        # Add hemoglobin-specific knowledge
+        hemoglobin_context = self._get_hemoglobin_knowledge()
+        
+        # Create comprehensive prompt
+        prompt = self._create_hemoglobin_prompt(
+            nail_analysis_result,
+            user_symptoms,
+            user_context,
+            relevant_docs,
+            hemoglobin_context
+        )
+        
+        # Get LLM analysis
+        try:
+            response = await self._get_llm_response(prompt)
+            
+            # Parse and structure response
+            structured_response = self._parse_hemoglobin_response(response, avg_hemoglobin)
+            
+            # Add safety disclaimers
+            structured_response["disclaimers"] = [
+                "This is not a medical diagnosis",
+                "Nail-based hemoglobin analysis is a screening tool only",
+                "Please consult a healthcare provider for proper blood testing",
+                "This analysis is for informational purposes only"
+            ]
+            
+            return structured_response
+            
+        except Exception as e:
+            return {
+                "error": str(e),
+                "message": "Unable to complete hemoglobin analysis",
+                "severity": "moderate",
+                "condition_overview": "Please consult a healthcare provider for proper blood testing."
+            }
+    
+    def _get_hemoglobin_knowledge(self) -> str:
+        """Get hemoglobin-specific medical knowledge"""
+        return """
+        HEMOGLOBIN REFERENCE RANGES:
+        - Normal for women: 120-160 g/L (12-16 g/dL)
+        - Mild anemia: 100-119 g/L (10-11.9 g/dL)
+        - Moderate anemia: 70-99 g/L (7-9.9 g/dL)
+        - Severe anemia: <70 g/L (<7 g/dL)
+        
+        COMMON CAUSES OF LOW HEMOGLOBIN:
+        - Iron deficiency (most common in women)
+        - Heavy menstrual periods
+        - Poor iron absorption
+        - Inadequate dietary iron intake
+        - Pregnancy
+        - Chronic diseases
+        - Blood loss
+        
+        SYMPTOMS OF ANEMIA:
+        - Fatigue and weakness
+        - Pale skin, nails, or inner eyelids
+        - Shortness of breath
+        - Cold hands and feet
+        - Brittle or spoon-shaped nails
+        - Unusual cravings for ice or starch
+        - Rapid or irregular heartbeat
+        """
+    
+    def _create_hemoglobin_prompt(
+        self,
+        nail_analysis_result: Dict,
+        symptoms: Optional[List[str]],
+        context: Optional[Dict],
+        medical_docs: List,
+        hemoglobin_context: str
+    ) -> str:
+        """Create comprehensive prompt for hemoglobin analysis"""
+        
+        nail_analysis = nail_analysis_result.get('nail_analysis', {})
+        avg_hemoglobin = nail_analysis.get('average_hemoglobin_g_per_L', 0)
+        num_nails = nail_analysis.get('num_nails_detected', 0)
+        
+        medical_knowledge = "\n".join([doc.page_content for doc in medical_docs])
+        
+        prompt = f"""
+        You are a knowledgeable women's health assistant providing educational information about hemoglobin levels.
+        
+        NAIL-BASED HEMOGLOBIN ANALYSIS RESULTS:
+        - Number of nails analyzed: {num_nails}
+        - Average hemoglobin level: {avg_hemoglobin:.1f} g/L
+        - Individual nail readings: {nail_analysis.get('individual_predictions', [])}
+        
+        User Information:
+        - Age: {context.get('age') if context else 'Not provided'}
+        - Reported symptoms: {', '.join(symptoms) if symptoms else 'None reported'}
+        
+        Medical Knowledge Context:
+        {hemoglobin_context}
+        
+        General Health Knowledge:
+        {medical_knowledge}
+        
+        Please provide a comprehensive assessment including:
+        1. Interpretation of the hemoglobin level
+        2. Severity assessment (low, moderate, high)
+        3. Possible causes for this hemoglobin level
+        4. Dietary and lifestyle recommendations
+        5. Signs that warrant immediate medical attention
+        6. Follow-up recommendations
+        
+        Format your response as JSON with these keys:
+        - condition_overview: Brief interpretation of the hemoglobin level
+        - severity: low/moderate/high (based on anemia risk)
+        - possible_causes: List of potential causes for this level
+        - self_care: List of dietary and lifestyle recommendations
+        - seek_care_if: List of warning signs requiring medical attention
+        - follow_up: Recommendations for monitoring and follow-up
+        - additional_notes: Any other relevant information
+        
+        Remember: This is educational information only, not medical advice.
+        Emphasize the need for proper blood testing for confirmation.
+        """
+        
+        return prompt
+    
+    def _parse_hemoglobin_response(self, response: str, hemoglobin_level: float) -> Dict[str, Any]:
+        """Parse LLM response into structured format for hemoglobin analysis"""
+        try:
+            # Try to parse as JSON
+            parsed = json.loads(response)
+            return parsed
+        except:
+            # Fallback to structured response based on hemoglobin level
+            if hemoglobin_level < 120:
+                severity = "high"
+                overview = f"Hemoglobin level of {hemoglobin_level:.1f} g/L indicates possible anemia and requires medical evaluation."
+            elif hemoglobin_level < 140:
+                severity = "moderate"
+                overview = f"Hemoglobin level of {hemoglobin_level:.1f} g/L is borderline low and should be monitored."
+            else:
+                severity = "low"
+                overview = f"Hemoglobin level of {hemoglobin_level:.1f} g/L is within normal range."
+            
+            return {
+                "condition_overview": overview,
+                "severity": severity,
+                "possible_causes": [
+                    "Iron deficiency", 
+                    "Heavy menstrual periods", 
+                    "Poor dietary iron intake",
+                    "Chronic diseases"
+                ],
+                "self_care": [
+                    "Eat iron-rich foods (red meat, spinach, beans)",
+                    "Include vitamin C to enhance iron absorption",
+                    "Avoid tea/coffee with iron-rich meals",
+                    "Consider iron supplements if recommended by doctor"
+                ],
+                "seek_care_if": [
+                    "Severe fatigue or weakness",
+                    "Shortness of breath",
+                    "Rapid heartbeat",
+                    "Chest pain",
+                    "Heavy menstrual bleeding"
+                ],
+                "follow_up": [
+                    "Get proper blood test for confirmation",
+                    "Monitor symptoms",
+                    "Follow up with healthcare provider"
+                ],
+                "additional_notes": "Nail-based analysis is a screening tool. Confirm with proper blood testing."
+            }
