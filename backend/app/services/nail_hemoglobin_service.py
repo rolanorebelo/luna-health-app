@@ -172,6 +172,14 @@ class NailHemoglobinService:
         self.nail_model_path = models_dir / "nail_detection_model_final.pth"
         self.hemoglobin_model_path = models_dir / "hemoglobin_model_scale_corrected_FINAL.pth"
         
+        # Debug: Log the actual paths being used
+        logger.info(f"Service file location: {Path(__file__).absolute()}")
+        logger.info(f"Models directory: {models_dir.absolute()}")
+        logger.info(f"Nail model path: {self.nail_model_path.absolute()}")
+        logger.info(f"Hemoglobin model path: {self.hemoglobin_model_path.absolute()}")
+        logger.info(f"Nail model exists: {self.nail_model_path.exists()}")
+        logger.info(f"Hemoglobin model exists: {self.hemoglobin_model_path.exists()}")
+        
         # Initialize models as None - they'll be loaded on first use
         self.nail_detector = None
         self.hemoglobin_predictor = None
