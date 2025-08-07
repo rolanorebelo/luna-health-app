@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { analyzeHealthImage } from '../services/healthApi';
-import { Camera, Upload, X, CheckCircle, AlertTriangle, Info, Zap, Eye, Microscope, Sparkles } from 'lucide-react';
+import { analyzeHealthImage, analyzeNailHemoglobin } from '../services/healthApi';
+import { Camera, Upload, X, CheckCircle, AlertTriangle, Info, Zap, Eye, Microscope, Sparkles, Droplets } from 'lucide-react';
 
 // Mock user profile for demo
 const mockProfile = {
@@ -14,7 +14,7 @@ const PhotoAnalysisPage: React.FC = () => {
   const profile = mockProfile;
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [analysisType, setAnalysisType] = useState<'skin' | 'discharge' | 'symptom' | 'general'>('skin');
+  const [analysisType, setAnalysisType] = useState<'skin' | 'discharge' | 'symptom' | 'general' | 'hemoglobin'>('skin');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [showCamera, setShowCamera] = useState(false);
@@ -50,6 +50,13 @@ const PhotoAnalysisPage: React.FC = () => {
       icon: <Sparkles className="w-6 h-6" />,
       description: 'Overall health assessment from visual indicators',
       color: 'from-green-500 to-emerald-500'
+    },
+    {
+      id: 'hemoglobin',
+      name: 'Nail Hemoglobin',
+      icon: <Droplets className="w-6 h-6" />,
+      description: 'Analyze hemoglobin levels through nail color analysis',
+      color: 'from-red-500 to-pink-500'
     }
   ];
 
@@ -118,13 +125,26 @@ const PhotoAnalysisPage: React.FC = () => {
     setAnalysisResult(null);
 
     try {
-      const result = await analyzeHealthImage(
-        selectedImage,
-        analysisType,
-        undefined, // or pass symptoms if you have them
-        profile?.age,
-        profile?.reproductiveStage
-      );
+      let result;
+      
+      if (analysisType === 'hemoglobin') {
+        // Use nail hemoglobin analysis
+        result = await analyzeNailHemoglobin(
+          selectedImage,
+          profile?.age,
+          undefined // symptoms can be added later if needed
+        );
+      } else {
+        // Use regular health image analysis
+        result = await analyzeHealthImage(
+          selectedImage,
+          analysisType,
+          undefined, // or pass symptoms if you have them
+          profile?.age,
+          profile?.reproductiveStage
+        );
+      }
+      
       setAnalysisResult(result);
       // console.log(result); // Uncomment to debug API response
     } catch (err) {
@@ -156,8 +176,10 @@ const PhotoAnalysisPage: React.FC = () => {
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Photo Analysis</h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Get instant insights about your health through advanced AI image analysis. 
-          Take a photo or upload an image for personalized health assessment.
+          {analysisType === 'hemoglobin' 
+            ? 'Analyze your hemoglobin levels through nail color analysis. Take a clear photo of your fingernails in good lighting.'
+            : 'Get instant insights about your health through advanced AI image analysis. Take a photo or upload an image for personalized health assessment.'
+          }
         </p>
       </motion.div>
 
@@ -277,12 +299,31 @@ const PhotoAnalysisPage: React.FC = () => {
               className="hidden"
             />
 
-            <div className="mt-6 p-4 bg-blue-50 rounded-xl">
-              <Info className="w-5 h-5 text-blue-600 mx-auto mb-2" />
-              <p className="text-sm text-blue-800">
-                <strong>Privacy Note:</strong> Images are analyzed locally and securely. 
-                Your photos are never stored or shared.
-              </p>
+            <div className="mt-6 space-y-4">
+              {/* Special instructions for nail hemoglobin analysis */}
+              {analysisType === 'hemoglobin' && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+                  <Droplets className="w-5 h-5 text-red-600 mx-auto mb-2" />
+                  <p className="text-sm text-red-800 mb-2">
+                    <strong>📸 Nail Photography Tips:</strong>
+                  </p>
+                  <ul className="text-sm text-red-700 space-y-1 text-left max-w-md mx-auto">
+                    <li>• Ensure good, natural lighting</li>
+                    <li>• Clean nails without polish</li>
+                    <li>• Hold hand steady, nails facing camera</li>
+                    <li>• Include all fingernails if possible</li>
+                    <li>• Avoid shadows over the nail area</li>
+                  </ul>
+                </div>
+              )}
+              
+              <div className="p-4 bg-blue-50 rounded-xl">
+                <Info className="w-5 h-5 text-blue-600 mx-auto mb-2" />
+                <p className="text-sm text-blue-800">
+                  <strong>Privacy Note:</strong> Images are analyzed locally and securely. 
+                  Your photos are never stored or shared.
+                </p>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -384,7 +425,56 @@ const PhotoAnalysisPage: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                {/* Show health assessment overview and severity */}
+                {/* Hemoglobin-specific results */}
+                {analysisType === 'hemoglobin' && analysisResult.nail_analysis && (
+                  <div className="space-y-4">
+                    {/* Hemoglobin Level Display */}
+                    <div className={`p-4 rounded-xl ${
+                      analysisResult.nail_analysis.average_hemoglobin_g_per_L < 120
+                        ? 'bg-red-50 border border-red-200'
+                        : analysisResult.nail_analysis.average_hemoglobin_g_per_L < 140
+                        ? 'bg-yellow-50 border border-yellow-200'
+                        : 'bg-green-50 border border-green-200'
+                    }`}>
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Droplets className={`w-5 h-5 ${
+                          analysisResult.nail_analysis.average_hemoglobin_g_per_L < 120
+                            ? 'text-red-600'
+                            : analysisResult.nail_analysis.average_hemoglobin_g_per_L < 140
+                            ? 'text-yellow-600'
+                            : 'text-green-600'
+                        }`} />
+                        <h4 className={`font-semibold ${
+                          analysisResult.nail_analysis.average_hemoglobin_g_per_L < 120
+                            ? 'text-red-800'
+                            : analysisResult.nail_analysis.average_hemoglobin_g_per_L < 140
+                            ? 'text-yellow-800'
+                            : 'text-green-800'
+                        }`}>
+                          Hemoglobin Level: {analysisResult.nail_analysis.average_hemoglobin_g_per_L.toFixed(1)} g/L
+                        </h4>
+                      </div>
+                      <p className={`text-sm ${
+                        analysisResult.nail_analysis.average_hemoglobin_g_per_L < 120
+                          ? 'text-red-700'
+                          : analysisResult.nail_analysis.average_hemoglobin_g_per_L < 140
+                          ? 'text-yellow-700'
+                          : 'text-green-700'
+                      }`}>
+                        {analysisResult.nail_analysis.average_hemoglobin_g_per_L < 120
+                          ? 'Low hemoglobin detected - possible anemia'
+                          : analysisResult.nail_analysis.average_hemoglobin_g_per_L < 140
+                          ? 'Borderline hemoglobin levels - monitor closely'
+                          : 'Normal hemoglobin levels detected'}
+                      </p>
+                      <div className="mt-2 text-xs text-gray-600">
+                        Normal range for women: 120-160 g/L
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Regular health assessment results */}
                 {analysisResult.health_assessment && (
                   <div className={`p-4 rounded-xl ${
                     analysisResult.health_assessment.severity === 'low'

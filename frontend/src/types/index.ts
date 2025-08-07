@@ -334,3 +334,40 @@ export interface ChatStore {
   sendMessage: (content: string, attachments?: File[]) => Promise<void>;
   clearChat: () => void;
 }
+
+// Nail Hemoglobin Analysis Types
+export interface NailHemoglobinPrediction {
+  nail_id: number;
+  bounding_box: number[];
+  confidence: number;
+  hemoglobin_g_per_L: number;
+  nail_size: number[];
+}
+
+export interface NailAnalysisResult {
+  num_nails_detected: number;
+  individual_predictions: NailHemoglobinPrediction[];
+  average_hemoglobin_g_per_L: number;
+}
+
+export interface HemoglobinHealthAssessment {
+  condition_overview: string;
+  severity: 'low' | 'moderate' | 'high';
+  possible_causes: string[];
+  self_care: string[];
+  seek_care_if: string[];
+  follow_up: string[];
+  additional_notes: string;
+  disclaimers: string[];
+}
+
+export interface NailHemoglobinResponse {
+  status: 'success' | 'error';
+  nail_analysis: NailAnalysisResult;
+  health_assessment: HemoglobinHealthAssessment;
+  medical_context: {
+    normal_range: string;
+    interpretation: string;
+  };
+  timestamp: string;
+}
