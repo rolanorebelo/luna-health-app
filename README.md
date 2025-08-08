@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-# Luna Health App
-=======
 # WIHHMS Health App
->>>>>>> 7dea52b135d6799cc63e7ed1f6819a4cb44c8721
 
 AI-powered women's health companion app built with React and TypeScript.
 
