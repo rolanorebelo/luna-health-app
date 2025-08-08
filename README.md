@@ -1,6 +1,6 @@
-# Luna Health App
+# WIHHMS Health App
 
-Welcome to the Luna Health App repository.
+Welcome to the WIHHMS Health App repository.
 
 ## Setup
 
