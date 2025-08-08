@@ -17,7 +17,7 @@ const Navigation: React.FC = () => {
       id: 'chat',
       path: '/chat',
       icon: MessageCircle,
-      label: 'Luna AI',
+      label: 'WIHHMS AI',
     },
     {
       id: 'camera',

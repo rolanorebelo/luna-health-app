@@ -564,7 +564,7 @@ const ProfilePage: React.FC = () => {
             <Eye className="w-5 h-5 text-gray-600" />
             <div>
               <div className="font-medium text-gray-900">Sign Out</div>
-              <div className="text-sm text-gray-600">Sign out of your Luna account</div>
+              <div className="text-sm text-gray-600">Sign out of your WIHHMS account</div>
             </div>
           </button>
 

@@ -21,7 +21,7 @@ const Header: React.FC = () => {
             <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900">Luna</h1>
+            <h1 className="text-xl font-bold text-gray-900">WIHHMS</h1>
           </div>
 
           {/* User Menu */}

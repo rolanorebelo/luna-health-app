@@ -41,7 +41,7 @@ const LoginPage: React.FC = () => {
             <Sparkles className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back</h1>
-          <p className="text-gray-600">Sign in to your Luna account</p>
+          <p className="text-gray-600">Sign in to your WIHHMS account</p>
         </motion.div>
 
         {/* Demo Credentials */}

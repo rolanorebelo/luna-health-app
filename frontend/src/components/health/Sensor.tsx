@@ -140,7 +140,7 @@ const Sensor: React.FC<SensorProps> = ({ onStartTest, onViewHistory }) => {
             <Thermometer className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Luna Smart Sensor</h3>
+            <h3 className="text-xl font-bold text-gray-900">WIHHMS Smart Sensor</h3>
             <p className="text-sm text-gray-600">At-home health testing</p>
           </div>
         </div>
@@ -165,7 +165,7 @@ const Sensor: React.FC<SensorProps> = ({ onStartTest, onViewHistory }) => {
             <Bluetooth className="w-5 h-5 text-blue-600" />
             <div>
               <h4 className="font-semibold text-blue-900">Connect Your Sensor</h4>
-              <p className="text-sm text-blue-700">Pair your Luna sensor to start testing</p>
+              <p className="text-sm text-blue-700">Pair your WIHHMS sensor to start testing</p>
             </div>
           </div>
           <div className="flex space-x-3">

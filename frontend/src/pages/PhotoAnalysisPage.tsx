@@ -579,7 +579,7 @@ const PhotoAnalysisPage: React.FC = () => {
               Save to History
             </button>
             <button className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all font-medium">
-              Chat with Luna AI
+              Chat with WIHHMS AI
             </button>
           </div>
         </motion.div>

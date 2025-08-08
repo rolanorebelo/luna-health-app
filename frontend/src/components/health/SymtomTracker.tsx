@@ -71,7 +71,7 @@ const SymptomTracker: React.FC<SymptomTrackerProps> = ({
       {/* Header */}
       <div className="text-center">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Track Your Symptoms</h2>
-        <p className="text-gray-600">Log how you're feeling to help Luna understand your patterns</p>
+        <p className="text-gray-600">Log how you're feeling to help WIHHMS understand your patterns</p>
       </div>
 
       {/* Date Selection */}

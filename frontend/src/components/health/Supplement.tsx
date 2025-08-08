@@ -75,7 +75,7 @@ const Supplement: React.FC<SupplementProps> = ({ onOrderNow }) => {
             <Pill className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Luna Gut Balance</h3>
+            <h3 className="text-xl font-bold text-gray-900">WIHHMS Gut Balance</h3>
             <div className="flex items-center space-x-1">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
@@ -93,7 +93,7 @@ const Supplement: React.FC<SupplementProps> = ({ onOrderNow }) => {
       {/* Product Description */}
       <div className="bg-white rounded-xl p-4 mb-4">
         <p className="text-gray-700 text-sm leading-relaxed">
-          Luna's proprietary gut health formula, specifically designed for women's unique microbiome needs. 
+          WIHHMS's proprietary gut health formula, specifically designed for women's unique microbiome needs. 
           Our advanced probiotic blend eliminates harmful bacteria while promoting beneficial flora, 
           leading to improved digestion, enhanced immune function, and better overall health.
         </p>

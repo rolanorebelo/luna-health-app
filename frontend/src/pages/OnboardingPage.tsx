@@ -141,7 +141,7 @@ const OnboardingPage: React.FC = () => {
   ];
 
   const steps = [
-    { id: 'welcome', title: 'Welcome to Luna', icon: <Sparkles className="w-6 h-6" /> },
+    { id: 'welcome', title: 'Welcome to WIHHMS', icon: <Sparkles className="w-6 h-6" /> },
     { id: 'personal', title: 'Personal Information', icon: <User className="w-6 h-6" /> },
     { id: 'reproductive', title: 'Reproductive Health', icon: <Heart className="w-6 h-6" /> },
     { id: 'goals', title: 'Health Goals', icon: <Target className="w-6 h-6" /> },
@@ -228,7 +228,7 @@ const OnboardingPage: React.FC = () => {
               <Sparkles className="w-12 h-12 text-white" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Welcome to Luna</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Welcome to WIHHMS</h2>
               <p className="text-xl text-gray-600 mb-6">Your Ultimate AI-Powered Women's Health Companion</p>
               <div className="text-left max-w-md mx-auto space-y-3">
                 <div className="flex items-center space-x-3">
@@ -262,7 +262,7 @@ const OnboardingPage: React.FC = () => {
           <motion.div className="space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <div className="text-center">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Tell us about yourself</h2>
-              <p className="text-gray-600">This helps us personalize your Luna experience</p>
+              <p className="text-gray-600">This helps us personalize your WIHHMS experience</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -466,7 +466,7 @@ const OnboardingPage: React.FC = () => {
           <motion.div className="space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <div className="text-center">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Health Goals</h2>
-              <p className="text-gray-600">Select all that apply to personalize your Luna experience</p>
+              <p className="text-gray-600">Select all that apply to personalize your WIHHMS experience</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -683,7 +683,7 @@ const OnboardingPage: React.FC = () => {
           <motion.div className="space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <div className="text-center">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Preferences</h2>
-              <p className="text-gray-600">Customize your Luna experience</p>
+              <p className="text-gray-600">Customize your WIHHMS experience</p>
             </div>
 
             <div className="bg-white rounded-xl p-6 border border-gray-200">
@@ -761,7 +761,7 @@ const OnboardingPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium text-gray-900">Anonymous Data Sharing</h4>
-                    <p className="text-sm text-gray-600">Help improve Luna for all users (fully anonymized)</p>
+                    <p className="text-sm text-gray-600">Help improve WIHHMS for all users (fully anonymized)</p>
                   </div>
                   <input
                     type="checkbox"
@@ -801,7 +801,7 @@ const OnboardingPage: React.FC = () => {
               <CheckCircle className="w-12 h-12 text-white" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Welcome to Luna, {formData.personalInfo.firstName}!</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Welcome to WIHHMS, {formData.personalInfo.firstName}!</h2>
               <p className="text-xl text-gray-600 mb-6">Your personalized health companion is ready</p>
             </div>
 
@@ -837,7 +837,7 @@ const OnboardingPage: React.FC = () => {
 
             <div className="p-4 bg-blue-50 rounded-xl">
               <p className="text-sm text-blue-800">
-                <strong>Next Steps:</strong> Luna will now begin learning your unique patterns and providing personalized insights. The more you use Luna, the smarter it becomes!
+                <strong>Next Steps:</strong> WIHHMS will now begin learning your unique patterns and providing personalized insights. The more you use WIHHMS, the smarter it becomes!
               </p>
             </div>
 
@@ -845,7 +845,7 @@ const OnboardingPage: React.FC = () => {
               onClick={completeOnboarding}
               className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 px-6 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all font-medium text-lg"
             >
-              Start Using Luna
+              Start Using WIHHMS
             </button>
           </motion.div>
         );
@@ -861,7 +861,7 @@ const OnboardingPage: React.FC = () => {
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">Setup Your Luna Profile</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Setup Your WIHHMS Profile</h1>
             <span className="text-sm text-gray-600">
               Step {currentStep + 1} of {steps.length}
             </span>

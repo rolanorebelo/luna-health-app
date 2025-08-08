@@ -107,7 +107,7 @@ const ChatPage: React.FC = () => {
       const welcomeMessage: ChatMessage = {
         id: 'welcome',
         type: 'ai',
-        content: `Hi there! 👋 I'm Luna, your AI women's health companion. I'm here to help you with any questions about your cycle, fertility, symptoms, or overall wellness.\n\nI can see you're currently on day ${userContext.cycleDay} of your cycle in the ${userContext.phase} phase. I'm specially trained on women's health topics and can provide personalized insights based on your unique situation.\n\nWhat would you like to talk about today?`,
+        content: `Hi there! 👋 I'm WIHHMS, your AI women's health companion. I'm here to help you with any questions about your cycle, fertility, symptoms, or overall wellness.\n\nI can see you're currently on day ${userContext.cycleDay} of your cycle in the ${userContext.phase} phase. I'm specially trained on women's health topics and can provide personalized insights based on your unique situation.\n\nWhat would you like to talk about today?`,
         timestamp: new Date(),
         quickActions: ['Ask about my cycle phase', 'Symptom checker', 'Fertility questions', 'General health tips']
       };
@@ -230,7 +230,7 @@ const ChatPage: React.FC = () => {
               <Sparkles className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Luna AI Assistant</h2>
+              <h2 className="text-xl font-bold">WIHHMS AI Assistant</h2>
               <p className="text-purple-100 text-sm">Specialized in women's health</p>
             </div>
           </div>
@@ -441,7 +441,7 @@ const ChatPage: React.FC = () => {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask Luna anything about your health..."
+              placeholder="Ask WIHHMS anything about your health..."
               className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-all"
               rows={1}
               style={{ minHeight: '48px', maxHeight: '120px' }}

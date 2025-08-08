@@ -77,7 +77,8 @@ const WelcomePage: React.FC = () => {
             <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center">
               <Sparkles className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-gray-900">Luna</span>
+            <span className="text-2xl font-bold text-gray-900">WIHHMS</span>
+            {/* <span className="text-2xl font-bold text-gray-900">WIHHMS - Women's Integrative Holistic Health Management</span> */}
           </div>
           <button
             onClick={() => navigate('/login')}
@@ -163,7 +164,7 @@ const WelcomePage: React.FC = () => {
               Your Privacy is Our Priority
             </h2>
             <p className="text-xl text-indigo-100 max-w-3xl mx-auto">
-              Unlike other health apps that sell your data, Luna uses military-grade encryption 
+              Unlike other health apps that sell your data, WIHHMS uses military-grade encryption 
               and never shares your personal information without your explicit consent.
             </p>
           </motion.div>
@@ -261,10 +262,10 @@ const WelcomePage: React.FC = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Why Luna is Different
+              Why WIHHMS is Different
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We're not just another period tracker. Luna is the first AI-powered comprehensive 
+              We're not just another period tracker. WIHHMS is the first AI-powered comprehensive 
               women's health platform that goes beyond basic tracking.
             </p>
           </motion.div>
@@ -299,7 +300,7 @@ const WelcomePage: React.FC = () => {
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Luna vs. Other Apps
+              WIHHMS vs. Other Apps
             </h2>
             <p className="text-xl text-gray-600">
               See why thousands are switching from Flo, Clue, and other period trackers
@@ -378,7 +379,7 @@ const WelcomePage: React.FC = () => {
               {
                 name: "Sarah M.",
                 age: "28, Seattle",
-                text: "Luna's photo analysis caught a skin issue I didn't even notice. It suggested I see a dermatologist, and they confirmed early melanoma. Luna literally saved my life.",
+                text: "WIHHMS's photo analysis caught a skin issue I didn't even notice. It suggested I see a dermatologist, and they confirmed early melanoma. WIHHMS literally saved my life.",
                 rating: 5
               },
               {
@@ -390,7 +391,7 @@ const WelcomePage: React.FC = () => {
               {
                 name: "Jennifer L.",
                 age: "25, Chicago",
-                text: "I've tried Flo, Clue, and others. None come close to Luna's accuracy and features. The comprehensive health tracking is exactly what I needed.",
+                text: "I've tried Flo, Clue, and others. None come close to WIHHMS's accuracy and features. The comprehensive health tracking is exactly what I needed.",
                 rating: 5
               }
             ].map((testimonial, index) => (
@@ -456,10 +457,10 @@ const WelcomePage: React.FC = () => {
               <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold">Luna</span>
+              <span className="text-xl font-bold">WIHHMS</span>
             </div>
             <div className="text-gray-400 text-sm">
-              © 2024 Luna. Your health, your data, your choice.
+              © 2024 WIHHMS. Your health, your data, your choice.
             </div>
           </div>
         </div>

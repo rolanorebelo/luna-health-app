@@ -76,7 +76,7 @@ const RegisterPage: React.FC = () => {
             <Sparkles className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Create your account</h1>
-          <p className="text-gray-600">Join Luna and start your health journey</p>
+          <p className="text-gray-600">Join WIHHMS and start your health journey</p>
         </motion.div>
 
         {/* Registration Form */}

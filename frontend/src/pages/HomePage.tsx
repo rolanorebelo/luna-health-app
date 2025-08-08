@@ -387,16 +387,16 @@ const HomePage: React.FC = () => {
 
       {/* Product & Technology Features */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Luna Gut Balance Supplement */}
+        {/* WIHHMS Gut Balance Supplement */}
         <SupplementComponent 
           onOrderNow={() => {
             // Handle supplement order
-            console.log('Ordering Luna Gut Balance supplement');
+            console.log('Ordering WIHHMS Gut Balance supplement');
             // You could open a modal, navigate to checkout, etc.
           }}
         />
 
-        {/* Luna Smart Sensor */}
+        {/* WIHHMS Smart Sensor */}
         <SensorComponent 
           onStartTest={() => {
             console.log('Starting sensor test');
@@ -430,7 +430,7 @@ const HomePage: React.FC = () => {
             },
             { 
               icon: <MessageCircle className="w-6 h-6" />, 
-              title: 'Chat with Luna', 
+              title: 'Chat with WIHHMS', 
               description: 'Ask health questions',
               color: 'from-purple-500 to-indigo-500',
               path: '/chat'
@@ -497,7 +497,7 @@ const HomePage: React.FC = () => {
           {[
             { time: '2 hours ago', action: 'Logged mood symptoms', icon: <Brain className="w-4 h-4" />, color: 'bg-purple-100 text-purple-600' },
             { time: '1 day ago', action: 'Completed photo analysis', icon: <Camera className="w-4 h-4" />, color: 'bg-green-100 text-green-600' },
-            { time: '2 days ago', action: 'Chatted with Luna AI', icon: <MessageCircle className="w-4 h-4" />, color: 'bg-blue-100 text-blue-600' },
+            { time: '2 days ago', action: 'Chatted with WIHHMS AI', icon: <MessageCircle className="w-4 h-4" />, color: 'bg-blue-100 text-blue-600' },
             { time: '3 days ago', action: 'Updated cycle tracking', icon: <Heart className="w-4 h-4" />, color: 'bg-pink-100 text-pink-600' }
           ].map((activity, index) => (
             <motion.div
@@ -545,7 +545,7 @@ const HomePage: React.FC = () => {
                 onClick={() => navigate('/chat')}
                 className="text-purple-600 hover:text-purple-700 text-sm font-medium flex items-center"
               >
-                Ask Luna for more tips
+                Ask WIHHMS for more tips
                 <ArrowRight className="w-3 h-3 ml-1" />
               </button>
             </div>
