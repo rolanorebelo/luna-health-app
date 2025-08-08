@@ -1,8 +1,9 @@
 import openai
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import Chroma
+from openai import OpenAI
+from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
-from langchain.llms import OpenAI
+from langchain.llms import OpenAI as LangChainOpenAI
 from typing import Dict, Any, Optional
 import json
 from app.core.config import settings
@@ -133,7 +134,9 @@ class LLMHealthService:
     
     async def _get_llm_response(self, prompt: str) -> str:
         """Get response from OpenAI"""
-        response = openai.ChatCompletion.create(
+        # Use new OpenAI client
+        client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a helpful women's health education assistant."},
