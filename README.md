@@ -1,5 +1,9 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Luna Health App
+=======
+# WIHHMS Health App
+>>>>>>> 7dea52b135d6799cc63e7ed1f6819a4cb44c8721
 
 AI-powered women's health companion app built with React and TypeScript.
 
@@ -25,6 +29,7 @@ AI-powered women's health companion app built with React and TypeScript.
 - Tailwind CSS
 - Framer Motion
 - OpenAI API
+<<<<<<< HEAD
 - Zustand for state management
 =======
 # Luna Health AI - Enhanced Medical Image Analysis System
@@ -393,3 +398,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **🩺 Remember**: This enhanced system provides significantly improved accuracy and medical specialization, but it remains an educational tool. Always consult qualified healthcare professionals for medical advice, diagnosis, and treatment.
 >>>>>>> womens-health/main
+=======
+- Zustand for state management
+>>>>>>> 7dea52b135d6799cc63e7ed1f6819a4cb44c8721
