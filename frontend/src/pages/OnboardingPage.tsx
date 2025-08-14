@@ -233,7 +233,7 @@ const OnboardingPage: React.FC = () => {
               <div className="text-left max-w-md mx-auto space-y-3">
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                  <span className="text-gray-700">Smart cycle tracking with 95% accuracy</span>
+                  <span className="text-gray-700">Smart cycle tracking</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
