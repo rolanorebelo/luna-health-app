@@ -10,7 +10,8 @@ import {
   Heart,
   Brain,
   Moon,
-  Activity
+  Activity,
+  Pill
 } from 'lucide-react';
 import useAuthStore from '../../stores/authStore';
 
@@ -41,6 +42,20 @@ const Sidebar: React.FC = () => {
       icon: <Calendar className="w-5 h-5" />,
       path: '/cycle',
       color: 'text-pink-600'
+    },
+    {
+      id: 'gut-balance',
+      label: 'WIHHMS Gut Balance',
+      icon: <Pill className="w-5 h-5" />,
+      path: '/gut-balance',
+      color: 'text-purple-600'
+    },
+    {
+      id: 'sensor',
+      label: 'WIHHMS Smart Sensor',
+      icon: <Activity className="w-5 h-5" />,
+      path: '/sensor',
+      color: 'text-blue-600'
     },
     {
       id: 'photo-analysis',

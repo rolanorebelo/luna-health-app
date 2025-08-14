@@ -27,8 +27,6 @@ import {
 } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
 import useHealthStore from '../stores/healthStore';
-import SupplementComponent from '../components/health/Supplement';
-import SensorComponent from '../components/health/Sensor';
 
 interface HealthMetric {
   id: string;
@@ -383,28 +381,6 @@ const HomePage: React.FC = () => {
             ))}
           </div>
         </motion.div>
-      </div>
-
-      {/* Product & Technology Features */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* WIHHMS Gut Balance Supplement */}
-        <SupplementComponent 
-          onOrderNow={() => {
-            // Handle supplement order
-            console.log('Ordering WIHHMS Gut Balance supplement');
-            // You could open a modal, navigate to checkout, etc.
-          }}
-        />
-
-        {/* WIHHMS Smart Sensor */}
-        <SensorComponent 
-          onStartTest={() => {
-            console.log('Starting sensor test');
-          }}
-          onViewHistory={() => {
-            console.log('Viewing sensor history');
-          }}
-        />
       </div>
 
       {/* Quick Actions */}

@@ -53,9 +53,9 @@ const PhotoAnalysisPage: React.FC = () => {
     },
     {
       id: 'hemoglobin',
-      name: 'Nail Hemoglobin',
+      name: 'Nutrition Analysis',
       icon: <Droplets className="w-6 h-6" />,
-      description: 'Analyze hemoglobin levels through nail color analysis',
+      description: 'Analyze nutrition levels through nail color analysis',
       color: 'from-red-500 to-pink-500'
     },
     {
@@ -135,7 +135,7 @@ const PhotoAnalysisPage: React.FC = () => {
       let result;
       
       if (analysisType === 'hemoglobin') {
-        // Use nail hemoglobin analysis
+        // Use nutrition analysis
         result = await analyzeNailHemoglobin(
           selectedImage,
           profile?.age,
@@ -192,7 +192,7 @@ const PhotoAnalysisPage: React.FC = () => {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Photo Analysis</h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
           {analysisType === 'hemoglobin' 
-            ? 'Analyze your hemoglobin levels through nail color analysis. Take a clear photo of your fingernails in good lighting.'
+            ? 'Analyze your nutrition levels through nail color analysis. Take a clear photo of your fingernails in good lighting.'
             : 'Get instant insights about your health through advanced AI image analysis. Take a photo or upload an image for personalized health assessment.'
           }
         </p>
@@ -242,7 +242,6 @@ const PhotoAnalysisPage: React.FC = () => {
           >
             <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Take Photo</h3>
                 <button
                   onClick={() => setShowCamera(false)}
                   className="p-2 hover:bg-gray-100 rounded-xl"
@@ -286,19 +285,10 @@ const PhotoAnalysisPage: React.FC = () => {
           transition={{ delay: 0.2 }}
         >
           <div className="text-center">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button
-                onClick={startCamera}
-                className="p-6 border-2 border-dashed border-purple-300 rounded-2xl hover:border-purple-500 hover:bg-purple-50 transition-all group"
-              >
-                <Camera className="w-8 h-8 text-purple-600 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="font-semibold text-gray-900 mb-1">Take Photo</h3>
-                <p className="text-sm text-gray-600">Use your camera for instant analysis</p>
-              </button>
-
+            <div className="flex justify-center">
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-6 border-2 border-dashed border-gray-300 rounded-2xl hover:border-gray-500 hover:bg-gray-50 transition-all group"
+                className="p-8 w-full max-w-md border-2 border-dashed border-gray-300 rounded-2xl hover:border-gray-500 hover:bg-gray-50 transition-all group"
               >
                 <Upload className="w-8 h-8 text-gray-600 mx-auto mb-3 group-hover:scale-110 transition-transform" />
                 <h3 className="font-semibold text-gray-900 mb-1">Upload Image</h3>
@@ -315,7 +305,7 @@ const PhotoAnalysisPage: React.FC = () => {
             />
 
             <div className="mt-6 space-y-4">
-              {/* Special instructions for nail hemoglobin analysis */}
+              {/* Special instructions for nutrition analysis */}
               {analysisType === 'hemoglobin' && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
                   <Droplets className="w-5 h-5 text-red-600 mx-auto mb-2" />
@@ -440,7 +430,7 @@ const PhotoAnalysisPage: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                {/* Hemoglobin-specific results */}
+                {/* Nutrition-specific results */}
                 {analysisType === 'hemoglobin' && analysisResult.nail_analysis && (
                   <div className="space-y-4">
                     {/* Hemoglobin Level Display */}

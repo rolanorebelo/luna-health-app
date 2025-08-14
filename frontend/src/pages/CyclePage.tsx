@@ -57,7 +57,6 @@ const CyclePage: React.FC = () => {
     periodFlow: '',
     symptoms: [] as string[],
     mood: 5,
-    temperature: '',
     notes: ''
   });
 
@@ -207,7 +206,6 @@ const CyclePage: React.FC = () => {
         periodFlow: dayData.periodFlow || '',
         symptoms: dayData.symptoms || [],
         mood: dayData.mood || 5,
-        temperature: dayData.temperature?.toString() || '',
         notes: dayData.notes || ''
       });
     }
@@ -224,7 +222,6 @@ const CyclePage: React.FC = () => {
           periodFlow: logData.periodFlow as any,
           symptoms: logData.symptoms,
           mood: logData.mood,
-          temperature: logData.temperature ? parseFloat(logData.temperature) : undefined,
           notes: logData.notes
         };
       }
@@ -767,21 +764,6 @@ const CyclePage: React.FC = () => {
                     <span>Terrible</span>
                     <span>Amazing</span>
                   </div>
-                </div>
-
-                {/* Temperature */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Basal Body Temperature (°F)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={logData.temperature}
-                    onChange={(e) => setLogData(prev => ({ ...prev, temperature: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="98.6"
-                  />
                 </div>
 
                 {/* Notes */}
