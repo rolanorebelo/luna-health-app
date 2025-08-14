@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, Send, Camera, Sparkles, RefreshCw, Heart, Brain, Baby, Stethoscope, Moon, Apple, Shield } from 'lucide-react';
+import { Send, Camera, Sparkles, RefreshCw, Heart, Brain, Baby, Stethoscope, Apple, Shield } from 'lucide-react';
 
 interface ChatMessage {
   id: string;
@@ -113,7 +113,7 @@ const ChatPage: React.FC = () => {
       };
       setMessages([welcomeMessage]);
     }
-  }, [userContext.cycleDay, userContext.phase]);
+  }, [messages.length, userContext.cycleDay, userContext.phase]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
