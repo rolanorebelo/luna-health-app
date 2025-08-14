@@ -34,6 +34,8 @@ IMPORTANT GUIDELINES:
 
 AREAS OF EXPERTISE:
 - Menstrual cycles and period health
+- UTI prevention, symptoms, and testing guidance
+- Vaginal health and intimate wellness
 - Fertility and ovulation
 - Hormonal changes and symptoms
 - Pregnancy and reproductive health
@@ -151,7 +153,9 @@ Keep responses conversational, helpful, and appropriately detailed. Ask follow-u
       'discharge': ['discharge', 'mucus', 'fluid'],
       'hormones': ['hormone', 'estrogen', 'progesterone', 'testosterone'],
       'nutrition': ['food', 'diet', 'nutrition', 'vitamin', 'supplement'],
-      'mental-health': ['mood', 'anxiety', 'depression', 'stress', 'emotional']
+      'mental-health': ['mood', 'anxiety', 'depression', 'stress', 'emotional'],
+      'uti': ['uti', 'urinary tract', 'bladder', 'burning urination', 'frequent urination'],
+      'vaginal-health': ['vaginal', 'yeast infection', 'bacterial vaginosis', 'bv', 'ph balance', 'intimate health']
     };
 
     Object.entries(topicKeywords).forEach(([topic, keywords]) => {
