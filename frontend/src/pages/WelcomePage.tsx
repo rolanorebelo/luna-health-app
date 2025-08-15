@@ -61,6 +61,46 @@ const WelcomePage: React.FC = () => {
     }
   ];
 
+  const PhylacticsLogo = ({ size = 'small', variant = 'light' }: { size?: 'small' | 'large', variant?: 'light' | 'dark' }) => (
+    <div 
+      className="flex items-center space-x-1 cursor-pointer hover:opacity-80 transition-opacity"
+      onClick={() => window.open('https://phylactics.com/', '_blank')}
+    >
+      {/* Phi symbol */}
+      <div className={`${size === 'large' ? 'w-8 h-8' : 'w-6 h-6'} ${variant === 'dark' ? 'bg-white' : 'bg-black'} rounded flex items-center justify-center`}>
+        <span className={`${variant === 'dark' ? 'text-black' : 'text-white'} font-bold ${size === 'large' ? 'text-lg' : 'text-sm'}`}>φ</span>
+      </div>
+      {/* PHYLACTICS with taglines */}
+      <div className="flex flex-col">
+        <span className={`font-bold tracking-tight ${size === 'large' ? 'text-lg' : 'text-sm'}`}>
+          <span className={variant === 'dark' ? 'text-red-400' : 'text-red-500'}>P</span>
+          <span className={variant === 'dark' ? 'text-red-400' : 'text-red-500'}>H</span>
+          <span className={variant === 'dark' ? 'text-orange-400' : 'text-orange-500'}>Y</span>
+          <span className={variant === 'dark' ? 'text-yellow-400' : 'text-yellow-500'}>L</span>
+          <span className={variant === 'dark' ? 'text-green-400' : 'text-green-500'}>A</span>
+          <span className={variant === 'dark' ? 'text-teal-400' : 'text-teal-500'}>C</span>
+          <span className={variant === 'dark' ? 'text-blue-400' : 'text-blue-500'}>T</span>
+          <span className={variant === 'dark' ? 'text-purple-400' : 'text-purple-500'}>I</span>
+          <span className={variant === 'dark' ? 'text-purple-500' : 'text-purple-600'}>C</span>
+          <span className={variant === 'dark' ? 'text-purple-600' : 'text-purple-700'}>S</span>
+        </span>
+        {size === 'large' && (
+          <>
+            <div className={`text-xs font-medium tracking-wide ${variant === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+              <span className={variant === 'dark' ? 'text-red-400' : 'text-red-500'}>EQUALITY</span> | 
+              <span className={variant === 'dark' ? 'text-orange-400' : 'text-orange-500'}> INNOVATION</span> | 
+              <span className={variant === 'dark' ? 'text-green-400' : 'text-green-500'}> QUALITY</span> | 
+              <span className={variant === 'dark' ? 'text-blue-400' : 'text-blue-500'}> CARE</span> |
+            </div>
+            <div className={`text-xs font-bold tracking-wide ${variant === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
+              REDEFINING HEALTH EQUALITY
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       {/* Navigation */}
@@ -70,8 +110,11 @@ const WelcomePage: React.FC = () => {
             <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center">
               <Sparkles className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-gray-900">WIHHMS</span>
-            {/* <span className="text-2xl font-bold text-gray-900">WIHHMS - Women's Integrative Holistic Health Management</span> */}
+            <div className="flex items-center space-x-2">
+              <span className="text-2xl font-bold text-gray-900">WIHHMS</span>
+              <span className="text-lg text-gray-600">by</span>
+              <PhylacticsLogo size="large" variant="light" />
+            </div>
           </div>
           <button
             onClick={() => navigate('/login')}
@@ -273,12 +316,13 @@ const WelcomePage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Luna */}
+                {/* WIHHMS */}
                 <div className="p-6 bg-gradient-to-br from-purple-50 to-pink-50">
-                  <h3 className="font-bold text-purple-900 mb-4">Luna</h3>
+                  <h3 className="font-bold text-purple-900 mb-4">WIHHMS</h3>
                   <div className="space-y-3">
                     <div className="text-sm text-green-600">✅ Revolutionary AI analysis</div>
                     <div className="text-sm text-green-600">✅ Specialized women's health AI</div>
+                    <div className="text-sm text-green-600">✅ 95% accuracy</div>
                     <div className="text-sm text-green-600">✅ Complete health platform</div>
                     <div className="text-sm text-green-600">✅ Encrypted & secure</div>
                     <div className="text-sm text-green-600">✅ Personalized for you</div>
@@ -331,10 +375,14 @@ const WelcomePage: React.FC = () => {
               <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold">WIHHMS</span>
+              <div className="flex items-center space-x-2">
+                <span className="text-xl font-bold">WIHHMS</span>
+                <span className="text-gray-400">by</span>
+                <PhylacticsLogo size="small" variant="dark" />
+              </div>
             </div>
             <div className="text-gray-400 text-sm">
-              © 2024 WIHHMS. Your health, your data, your choice.
+              © 2024 Phylactics. Your health, your data, your choice.
             </div>
           </div>
         </div>

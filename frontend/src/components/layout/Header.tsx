@@ -1,11 +1,44 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { User, LogOut, Sparkles } from 'lucide-react';
-import useAuthStore from '../../stores/authStore';
+import { useNavigate } from 'react-router-dom';
+// Mock auth store for demo
+const useAuthStore = () => ({
+  profile: { firstName: 'Sarah' },
+  logout: () => console.log('Logging out...')
+});
+
+const PhylacticsLogo = ({ size = 'small', variant = 'light' }: { size?: 'small' | 'large', variant?: 'light' | 'dark' }) => (
+  <div 
+    className="flex items-center space-x-1 cursor-pointer hover:opacity-80 transition-opacity"
+    onClick={() => window.open('https://phylactics.com/', '_blank')}
+  >
+    {/* Phi symbol */}
+    <div className={`${size === 'large' ? 'w-8 h-8' : 'w-5 h-5'} ${variant === 'dark' ? 'bg-white' : 'bg-black'} rounded flex items-center justify-center`}>
+      <span className={`${variant === 'dark' ? 'text-black' : 'text-white'} font-bold ${size === 'large' ? 'text-lg' : 'text-xs'}`}>φ</span>
+    </div>
+    {/* PHYLACTICS with taglines */}
+    <div className="flex flex-col">
+      <span className={`font-bold tracking-tight ${size === 'large' ? 'text-lg' : 'text-xs'}`}>
+        <span className={variant === 'dark' ? 'text-red-400' : 'text-red-500'}>P</span>
+        <span className={variant === 'dark' ? 'text-red-400' : 'text-red-500'}>H</span>
+        <span className={variant === 'dark' ? 'text-orange-400' : 'text-orange-500'}>Y</span>
+        <span className={variant === 'dark' ? 'text-yellow-400' : 'text-yellow-500'}>L</span>
+        <span className={variant === 'dark' ? 'text-green-400' : 'text-green-500'}>A</span>
+        <span className={variant === 'dark' ? 'text-teal-400' : 'text-teal-500'}>C</span>
+        <span className={variant === 'dark' ? 'text-blue-400' : 'text-blue-500'}>T</span>
+        <span className={variant === 'dark' ? 'text-purple-400' : 'text-purple-500'}>I</span>
+        <span className={variant === 'dark' ? 'text-purple-500' : 'text-purple-600'}>C</span>
+        <span className={variant === 'dark' ? 'text-purple-600' : 'text-purple-700'}>S</span>
+      </span>
+    </div>
+  </div>
+);
 
 const Header: React.FC = () => {
-  const navigate = useNavigate();
-  const { profile, logout } = useAuthStore(); // Changed from 'user' to 'profile'
+
+   const navigate = useNavigate();
+  
+  const { profile, logout } = useAuthStore();
 
   const handleLogout = () => {
     logout();
@@ -21,7 +54,11 @@ const Header: React.FC = () => {
             <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900">WIHHMS</h1>
+            <div className="flex items-center space-x-2">
+              <h1 className="text-xl font-bold text-gray-900">WIHHMS</h1>
+              <span className="text-sm text-gray-600">by</span>
+              <PhylacticsLogo size="small" variant="light" />
+            </div>
           </div>
 
           {/* User Menu */}
