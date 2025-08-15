@@ -8,7 +8,6 @@ interface ChatMessage {
   content: string;
   timestamp: Date | string; // Handle both Date and string
   category?: string;
-  confidence?: number;
   attachments?: { type: 'image'; url: string; name: string }[];
   quickActions?: string[];
 }
@@ -42,16 +41,16 @@ const ChatPage: React.FC = () => {
   const healthCategories = [
     { id: 'periods', name: 'Periods & Cycles', icon: <Heart className="w-5 h-5" />, color: 'from-red-500 to-pink-500' },
     { id: 'fertility', name: 'Fertility & Pregnancy', icon: <Baby className="w-5 h-5" />, color: 'from-green-500 to-emerald-500' },
-    { id: 'symptoms', name: 'Symptoms & Health', icon: <Stethoscope className="w-5 h-5" />, color: 'from-blue-500 to-cyan-500' },
+    { id: 'symptoms', name: 'UTI & Symptoms', icon: <Stethoscope className="w-5 h-5" />, color: 'from-blue-500 to-cyan-500' },
     { id: 'mental', name: 'Mental Wellness', icon: <Brain className="w-5 h-5" />, color: 'from-purple-500 to-indigo-500' },
     { id: 'lifestyle', name: 'Lifestyle & Nutrition', icon: <Apple className="w-5 h-5" />, color: 'from-yellow-500 to-orange-500' },
-    { id: 'sexual', name: 'Sexual Health', icon: <Shield className="w-5 h-5" />, color: 'from-pink-500 to-rose-500' }
+    { id: 'sexual', name: 'Vaginal Health', icon: <Shield className="w-5 h-5" />, color: 'from-pink-500 to-rose-500' }
   ];
 
   const smartSuggestions = [
     { category: 'periods', questions: [
-      "Is my discharge normal?",
-      "Why am I bleeding between periods?",
+      "Is my discharge normal for my cycle phase?",
+      "Why am I bleeding between periods?", 
       "How to reduce period cramps naturally?",
       "When should I be concerned about heavy bleeding?"
     ]},
@@ -62,10 +61,10 @@ const ChatPage: React.FC = () => {
       "What affects egg quality?"
     ]},
     { category: 'symptoms', questions: [
-      "Could this be a UTI?",
+      "Could these be UTI symptoms?",
+      "How to prevent urinary tract infections?",
       "Why do I have breast pain?",
-      "Is this headache hormone-related?",
-      "What causes bloating before periods?"
+      "Is this headache hormone-related?"
     ]},
     { category: 'mental', questions: [
       "How do hormones affect mood?",
@@ -76,13 +75,13 @@ const ChatPage: React.FC = () => {
     { category: 'lifestyle', questions: [
       "Best foods for hormonal balance",
       "Exercise during different cycle phases",
-      "Sleep and menstrual health",
+      "Sleep and menstrual health", 
       "Supplements for women's health"
     ]},
     { category: 'sexual', questions: [
-      "Pain during intercourse - causes?",
-      "Low libido and hormones",
-      "Safe sex practices",
+      "Normal vs abnormal vaginal discharge",
+      "Maintaining vaginal pH balance",
+      "UTI prevention after sex",
       "Vaginal dryness solutions"
     ]}
   ];
@@ -119,63 +118,77 @@ const ChatPage: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const generateAIResponse = (userMessage: string, category?: string): ChatMessage => {
-    // Advanced AI response simulation with context awareness
-    const responses = {
-      discharge: {
-        content: `Based on your current cycle phase (${userContext.phase}), let me help you understand your discharge patterns.\n\nDuring ovulation (which you're in now), it's completely normal to have:\n• Clear, stretchy discharge (like egg whites)\n• Increased amount of discharge\n• Slippery, wet feeling\n\nThis is actually a positive sign that your body is working normally! This type of discharge indicates peak fertility.\n\n**When to be concerned:**\n• Strong fishy or foul odor\n• Green or gray color\n• Cottage cheese-like texture with itching\n• Burning sensation\n\nYour current discharge sounds perfectly normal for day ${userContext.cycleDay} of your cycle. Would you like me to explain more about what to expect in your upcoming luteal phase?`,
-        confidence: 92,
-        category: 'reproductive-health',
-        quickActions: ['What happens in luteal phase?', 'Track my discharge patterns', 'Signs of infection']
-      },
-      cramps: {
-        content: `I understand period cramps can be really challenging! Since you mentioned mild cramping recently, let me share some effective natural relief methods:\n\n**Immediate Relief:**\n• Heat therapy (heating pad, warm bath)\n• Gentle massage with circular motions\n• Magnesium supplement (300-400mg daily)\n• Anti-inflammatory foods (ginger, turmeric)\n\n**Prevention Strategies:**\n• Regular exercise (especially during follicular phase)\n• Reduce caffeine 1 week before period\n• Increase omega-3 fatty acids\n• Practice stress reduction techniques\n\n**When to see a doctor:**\n• Cramps interfere with daily activities\n• Pain is getting worse over time\n• Heavy bleeding with severe pain\n• Pain during non-period times\n\nGiven that you're ${userContext.age} and in the ${userContext.reproductiveStage} stage, these strategies should be particularly effective. Would you like specific exercise recommendations for your current cycle phase?`,
-        confidence: 95,
-        category: 'symptom-management',
-        quickActions: ['Exercise for my cycle phase', 'Natural pain relief recipes', 'When to see a doctor']
-      },
-      fertility: {
-        content: `Great question about fertility! Based on your profile, you're currently in an excellent position to understand your fertility patterns.\n\n**Your Current Status (Day ${userContext.cycleDay}):**\n• You're in the ovulatory phase - peak fertility time!\n• This is when conception is most likely\n• Your body is releasing mature eggs\n\n**Key Fertility Signs to Track:**\n• Cervical mucus (egg-white consistency now)\n• Basal body temperature (should rise after ovulation)\n• Ovulation pain (mittelschmerz)\n• Increased libido\n\n**Optimizing Fertility:**\n• Folic acid supplementation\n• Maintain healthy BMI\n• Reduce stress levels\n• Limit alcohol and caffeine\n\n**For Your Age (${userContext.age}):**\nYou're in an optimal fertility window. Most women your age have a 20-25% chance of conception each cycle when timing is right.\n\nWould you like me to help you create a personalized fertility tracking plan?`,
-        confidence: 88,
-        category: 'fertility',
-        quickActions: ['Create fertility plan', 'Track ovulation signs', 'Preconception checklist']
-      },
-      mood: {
-        content: `Hormonal mood changes are incredibly common and valid! Let me explain what's happening in your body right now.\n\n**During Ovulation (Your Current Phase):**\n• Estrogen is at its peak - often brings positive mood\n• Many women feel more confident and energetic\n• Social and communication skills often enhanced\n\n**What to Expect Next (Luteal Phase):**\n• Progesterone rises, which can cause mood dips\n• PMS symptoms may appear 7-10 days before period\n• Anxiety and irritability can increase\n\n**Natural Mood Support:**\n• B-complex vitamins (especially B6)\n• Regular exercise (releases endorphins)\n• Adequate sleep (7-9 hours)\n• Mindfulness and meditation\n• Social support and connection\n\n**Cycle-Synced Self-Care:**\n• Week 1-2: Take on new challenges, socialize\n• Week 3-4: Focus on rest, gentle activities\n\nSince you mentioned this is one of your health goals, I can help you create a personalized mood-tracking system. Would that be helpful?`,
-        confidence: 91,
-        category: 'mental-health',
-        quickActions: ['Mood tracking system', 'PMS management tips', 'Hormone-mood connection']
-      },
-      default: {
-        content: `Thanks for your question! As your AI health companion, I'm here to help with any women's health concerns.\n\nBased on your current cycle phase (${userContext.phase}) and being on day ${userContext.cycleDay}, I can provide personalized guidance on:\n\n• Cycle tracking and predictions\n• Symptom management\n• Fertility and reproductive health\n• Mental wellness and mood\n• Lifestyle and nutrition\n• Sexual health concerns\n\nCould you tell me more specifically what you'd like to know about? I'm trained in women's health and can provide detailed, personalized insights based on your unique situation.`,
-        confidence: 85,
-        category: 'general',
-        quickActions: ['Period questions', 'Fertility help', 'Symptom analysis', 'Mood support']
+  const sendMessageToRAG = async (message: string): Promise<ChatMessage> => {
+    try {
+      const response = await fetch('/api/v1/chat/send-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: message,
+          user_context: userContext
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response from chat service');
       }
-    };
 
-    // Determine response based on keywords
+      const data = await response.json();
+      
+      return {
+        id: `ai-${Date.now()}`,
+        type: 'ai',
+        content: data.response,
+        timestamp: new Date(data.timestamp),
+        category: data.category,
+        quickActions: data.quick_actions
+      };
+    } catch (error) {
+      console.error('Chat service error:', error);
+      // Fallback to enhanced local responses
+      return generateFallbackResponse(message);
+    }
+  };
+
+  const generateFallbackResponse = (userMessage: string): ChatMessage => {
+    // Enhanced fallback responses with better medical accuracy and empathy
     const lowerMessage = userMessage.toLowerCase();
-    let response = responses.default;
+    
+    let content = '';
+    let category = 'general-health';
+    let quickActions: string[] = [];
 
-    if (lowerMessage.includes('discharge') || lowerMessage.includes('mucus')) {
-      response = responses.discharge;
-    } else if (lowerMessage.includes('cramp') || lowerMessage.includes('pain') || lowerMessage.includes('hurt')) {
-      response = responses.cramps;
-    } else if (lowerMessage.includes('fertil') || lowerMessage.includes('conceiv') || lowerMessage.includes('ovulat')) {
-      response = responses.fertility;
-    } else if (lowerMessage.includes('mood') || lowerMessage.includes('emotional') || lowerMessage.includes('anxious') || lowerMessage.includes('pms')) {
-      response = responses.mood;
+    if (lowerMessage.includes('uti') || lowerMessage.includes('urinary') || lowerMessage.includes('burning')) {
+      content = `I understand you're concerned about UTI symptoms. This is very common in women's health.\n\n**Common UTI Signs:**\n• Burning when urinating\n• Frequent, urgent need to urinate\n• Cloudy or strong-smelling urine\n• Pelvic pain\n\n**Immediate Steps:**\n• Drink plenty of water\n• Urinate frequently\n• Avoid irritating products\n\n**When to See a Doctor:**\n• Symptoms persist over 24-48 hours\n• Fever, chills, or back pain\n• Blood in urine\n\nUTIs are very treatable with proper medical care. Please see a healthcare provider for diagnosis and treatment.`;
+      category = 'uti-health';
+      quickActions = ['UTI prevention tips', 'When to see a doctor', 'Home comfort measures', 'Hydration guide'];
+    } else if (lowerMessage.includes('discharge') || lowerMessage.includes('vaginal') || lowerMessage.includes('mucus')) {
+      content = `Let me help you understand vaginal discharge, which varies throughout your cycle.\n\n**During your current ${userContext.phase} phase (Day ${userContext.cycleDay}):**\n• Normal discharge changes with hormones\n• Clear, stretchy discharge during ovulation is healthy\n• Color and consistency shifts are usually normal\n\n**Healthy Discharge:**\n• Clear to milky white\n• Mild or no odor\n• No itching or burning\n\n**When to Seek Care:**\n• Green, gray, or bright yellow color\n• Strong fishy or foul odor\n• Itching, burning, or pain\n\nYour body's natural self-cleaning system works well. Trust your instincts about changes.`;
+      category = 'vaginal-health';
+      quickActions = ['Normal vs abnormal discharge', 'Vaginal health tips', 'When to see a provider', 'pH balance info'];
+    } else if (lowerMessage.includes('period') || lowerMessage.includes('menstrual') || lowerMessage.includes('cycle')) {
+      content = `Understanding your menstrual cycle is key to overall health awareness.\n\n**Your Current Status:**\n• Day ${userContext.cycleDay} of your cycle\n• In the ${userContext.phase} phase\n• This is normal for someone your age (${userContext.age})\n\n**Cycle Basics:**\n• Normal cycles: 21-35 days\n• Flow duration: 3-7 days\n• Changes throughout life are normal\n\n**Track Important Signs:**\n• Flow patterns and changes\n• Associated symptoms\n• Cycle length variations\n\nEvery person's cycle is unique. Focus on what's normal for you.`;
+      category = 'menstrual-health';
+      quickActions = ['Cycle tracking tips', 'Understanding phases', 'Managing symptoms', 'When to worry'];
+    } else if (lowerMessage.includes('mood') || lowerMessage.includes('emotional') || lowerMessage.includes('pms') || lowerMessage.includes('anxiety')) {
+      content = `Hormonal changes throughout your cycle significantly affect mood and emotions.\n\n**In your current ${userContext.phase} phase:**\n• Hormonal fluctuations are normal\n• Mood changes are valid and common\n• Your body is working as designed\n\n**Supporting Your Mental Wellness:**\n• Recognize patterns in your cycle\n• Practice self-compassion\n• Maintain consistent sleep schedule\n• Stay connected with supportive people\n\n**When to Seek Support:**\n• Mood severely impacts daily life\n• Persistent sadness or anxiety\n• Difficulty coping with activities\n\nYour mental health is as important as your physical health.`;
+      category = 'mental-wellness';
+      quickActions = ['Mood tracking ideas', 'Cycle-mood connection', 'Self-care strategies', 'Support resources'];
+    } else {
+      content = `Thank you for reaching out! I'm here to provide supportive, evidence-based information about women's health.\n\n**Based on your current status:**\n• Day ${userContext.cycleDay} (${userContext.phase} phase)\n• Age ${userContext.age}\n• Recent symptoms: ${userContext.recentSymptoms.join(', ')}\n\n**I can help with:**\n• Menstrual cycle questions\n• UTI and vaginal health concerns\n• Fertility and reproductive health\n• Symptom understanding\n• When to seek medical care\n\n**Remember:**\n• This is educational information\n• Always consult healthcare providers for concerning symptoms\n• Trust your instincts about your body\n\nWhat specific area would you like to explore?`;
+      category = 'general-health';
+      quickActions = ['UTI questions', 'Vaginal health', 'Cycle concerns', 'Symptom checker'];
     }
 
     return {
       id: `ai-${Date.now()}`,
       type: 'ai',
-      content: response.content,
+      content,
       timestamp: new Date(),
-      confidence: response.confidence,
-      category: response.category,
-      quickActions: response.quickActions
+      category,
+      quickActions
     };
   };
 
@@ -193,12 +206,16 @@ const ChatPage: React.FC = () => {
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate AI processing time
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    const aiResponse = generateAIResponse(inputValue, selectedCategory || undefined);
-    setMessages(prev => [...prev, aiResponse]);
-    setIsTyping(false);
+    try {
+      // Try to use RAG-powered chat service
+      const aiResponse = await sendMessageToRAG(inputValue);
+      setMessages(prev => [...prev, aiResponse]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Fallback handled in sendMessageToRAG
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleQuickAction = (action: string) => {
@@ -313,20 +330,12 @@ const ChatPage: React.FC = () => {
                         {message.content}
                       </div>
                       
-                      {/* AI Message Metadata */}
-                      {message.type === 'ai' && message.confidence && (
-                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span className="text-xs text-gray-600">
-                              {message.confidence}% confidence
-                            </span>
-                          </div>
-                          {message.category && (
-                            <span className="text-xs text-gray-500 capitalize">
-                              {message.category.replace('-', ' ')}
-                            </span>
-                          )}
+                      {/* AI Message Category */}
+                      {message.type === 'ai' && message.category && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <span className="text-xs text-gray-500 capitalize">
+                            {message.category.replace('-', ' ')}
+                          </span>
                         </div>
                       )}
                     </div>

@@ -43,7 +43,6 @@ interface PatternInsight {
   id: string;
   title: string;
   description: string;
-  confidence: number;
   category: string;
   impact: 'high' | 'medium' | 'low';
   actionable: boolean;
@@ -135,7 +134,6 @@ const InsightsPage: React.FC = () => {
       id: '1',
       title: 'PMS Symptoms Peak on Day 25',
       description: 'Your mood dips and physical symptoms consistently intensify 3 days before your period starts.',
-      confidence: 92,
       category: 'Cycle Patterns',
       impact: 'high',
       actionable: true
@@ -144,7 +142,6 @@ const InsightsPage: React.FC = () => {
       id: '2',
       title: 'Sleep Quality Affects Next-Day Mood',
       description: 'Poor sleep quality (below 7 hours) correlates with 40% lower mood scores the following day.',
-      confidence: 88,
       category: 'Lifestyle Correlation',
       impact: 'high',
       actionable: true
@@ -153,7 +150,6 @@ const InsightsPage: React.FC = () => {
       id: '3',
       title: 'Ovulation Energy Boost Pattern',
       description: 'You consistently report 25% higher energy levels during your ovulatory phase (days 12-16).',
-      confidence: 85,
       category: 'Hormonal Patterns',
       impact: 'medium',
       actionable: false
@@ -162,7 +158,6 @@ const InsightsPage: React.FC = () => {
       id: '4',
       title: 'Stress Impacts Cycle Length',
       description: 'High stress periods correlate with slightly longer cycles (+2-3 days) in your data.',
-      confidence: 76,
       category: 'Stress Correlation',
       impact: 'medium',
       actionable: true
@@ -447,16 +442,6 @@ const InsightsPage: React.FC = () => {
                   <p className="text-sm text-gray-600 mb-3">{pattern.description}</p>
                   
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="text-xs text-gray-500">Confidence:</div>
-                      <div className="w-16 bg-gray-200 rounded-full h-1">
-                        <div 
-                          className="bg-purple-500 h-1 rounded-full transition-all duration-500"
-                          style={{ width: `${pattern.confidence}%` }}
-                        />
-                      </div>
-                      <div className="text-xs font-medium text-gray-700">{pattern.confidence}%</div>
-                    </div>
                     {pattern.actionable && (
                       <div className="text-xs text-green-600 flex items-center">
                         <Target className="w-3 h-3 mr-1" />
