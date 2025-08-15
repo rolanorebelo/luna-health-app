@@ -348,3 +348,140 @@ class LLMHealthService:
                 ],
                 "additional_notes": "Nail-based analysis is a screening tool. Confirm with proper blood testing."
             }
+    
+    async def generate_cycle_insight(
+        self,
+        current_cycle_day: int,
+        cycle_length: int,
+        period_length: int,
+        last_period_date: str,
+        health_goals: Optional[List[str]] = None,
+        reproductive_stage: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Generate personalized cycle insight based on current cycle data"""
+        
+        # Calculate cycle phase
+        follicular_end = cycle_length // 2 - 2
+        ovulatory_start = follicular_end + 1
+        ovulatory_end = ovulatory_start + 2
+        
+        if current_cycle_day <= period_length:
+            phase = "menstrual"
+        elif current_cycle_day <= follicular_end:
+            phase = "follicular"
+        elif current_cycle_day <= ovulatory_end:
+            phase = "ovulatory"
+        else:
+            phase = "luteal"
+        
+        # Create personalized prompt
+        prompt = self._create_cycle_insight_prompt(
+            current_cycle_day, cycle_length, period_length, phase, 
+            health_goals, reproductive_stage
+        )
+        
+        try:
+            response = await self._get_llm_response(prompt)
+            return self._parse_cycle_insight_response(response, phase)
+        except Exception as e:
+            print(f"Error generating cycle insight: {e}")
+            return self._get_fallback_cycle_insight(phase, current_cycle_day)
+    
+    def _create_cycle_insight_prompt(
+        self,
+        cycle_day: int,
+        cycle_length: int,
+        period_length: int,
+        phase: str,
+        health_goals: Optional[List[str]],
+        reproductive_stage: Optional[str]
+    ) -> str:
+        """Create a personalized prompt for cycle insights"""
+        
+        goals_text = ""
+        if health_goals:
+            goals_text = f"User's health goals: {', '.join(health_goals)}. "
+        
+        stage_text = ""
+        if reproductive_stage:
+            stage_text = f"Reproductive stage: {reproductive_stage}. "
+        
+        return f"""
+As a women's health AI assistant, provide a personalized insight for a user based on their current menstrual cycle data.
+
+Current cycle information:
+- Day {cycle_day} of {cycle_length}-day cycle
+- Currently in {phase} phase
+- Period length: {period_length} days
+{stage_text}{goals_text}
+
+Please provide:
+1. A short, encouraging title (2-4 words)
+2. A personalized description (1-2 sentences) with actionable advice
+3. The insight type: "success" for ovulatory/fertile phases, "info" for other phases
+4. A relevant action suggestion
+
+Focus on:
+- Current cycle phase benefits and recommendations
+- Personalized advice based on health goals if provided
+- Encouraging and positive tone
+- Practical, actionable suggestions
+
+Format your response as JSON:
+{{
+    "title": "Short Title",
+    "description": "Personalized description with advice",
+    "type": "success|info|warning",
+    "action": "Suggested Action"
+}}
+"""
+    
+    def _parse_cycle_insight_response(self, response: str, phase: str) -> Dict[str, Any]:
+        """Parse the LLM response for cycle insights"""
+        try:
+            # Try to parse JSON response
+            import re
+            json_match = re.search(r'\{.*\}', response, re.DOTALL)
+            if json_match:
+                insight_data = json.loads(json_match.group())
+                return {
+                    "title": insight_data.get("title", "Cycle Update"),
+                    "description": insight_data.get("description", "Stay in tune with your cycle."),
+                    "type": insight_data.get("type", "info"),
+                    "action": insight_data.get("action", "Track Cycle")
+                }
+        except Exception as e:
+            print(f"Error parsing cycle insight response: {e}")
+        
+        return self._get_fallback_cycle_insight(phase, 0)
+    
+    def _get_fallback_cycle_insight(self, phase: str, cycle_day: int) -> Dict[str, Any]:
+        """Provide fallback insights if LLM fails"""
+        insights = {
+            "menstrual": {
+                "title": "Rest & Recharge",
+                "description": "Your body is working hard during menstruation. Focus on gentle movement, hydration, and iron-rich foods to support your energy.",
+                "type": "info",
+                "action": "Track Symptoms"
+            },
+            "follicular": {
+                "title": "Energy Rising",
+                "description": "Your energy levels are building! This is a great time to start new projects and engage in more intense workouts.",
+                "type": "info",
+                "action": "Plan Activities"
+            },
+            "ovulatory": {
+                "title": "Peak Fertility",
+                "description": "You're in your fertile window! If trying to conceive, this is optimal timing. Your energy and mood are likely at their peak.",
+                "type": "success",
+                "action": "Track Fertility"
+            },
+            "luteal": {
+                "title": "Focus Within",
+                "description": "As your cycle progresses, focus on self-care and stress management. Consider gentle yoga and nutritious comfort foods.",
+                "type": "info",
+                "action": "Practice Self-Care"
+            }
+        }
+        
+        return insights.get(phase, insights["follicular"])

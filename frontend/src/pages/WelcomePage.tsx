@@ -61,13 +61,6 @@ const WelcomePage: React.FC = () => {
     }
   ];
 
-  const stats = [
-    { number: '95%', label: 'Prediction Accuracy' },
-    { number: '24/7', label: 'AI Support' },
-    { number: '100K+', label: 'Health Insights' },
-    { number: '🔒', label: 'Secure & Private' }
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       {/* Navigation */}
@@ -128,21 +121,6 @@ const WelcomePage: React.FC = () => {
               >
                 Sign In
               </button>
-            </motion.div>
-
-            {/* Stats */}
-            <motion.div
-              className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              {stats.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="text-3xl font-bold text-gray-900 mb-1">{stat.number}</div>
-                  <div className="text-sm text-gray-600">{stat.label}</div>
-                </div>
-              ))}
             </motion.div>
           </div>
         </div>
@@ -208,47 +186,6 @@ const WelcomePage: React.FC = () => {
               </motion.div>
             ))}
           </div>
-
-          <motion.div
-            className="bg-white/10 rounded-2xl p-8 backdrop-blur-sm border border-white/20"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <div>
-                <h3 className="text-2xl font-bold text-white mb-4">Complete Control Over Your Data</h3>
-                <div className="space-y-3 text-indigo-100">
-                  <div className="flex items-center space-x-3">
-                    <CheckCircle className="w-5 h-5 text-green-300" />
-                    <span>Delete your account and all data anytime</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <CheckCircle className="w-5 h-5 text-green-300" />
-                    <span>Export your health data in standard formats</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <CheckCircle className="w-5 h-5 text-green-300" />
-                    <span>Granular privacy controls for every data type</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <CheckCircle className="w-5 h-5 text-green-300" />
-                    <span>Optional anonymous research participation</span>
-                  </div>
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="inline-block p-6 bg-white/20 rounded-2xl mb-4">
-                  <Users className="w-12 h-12 text-white mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white">0</div>
-                  <div className="text-indigo-100 text-sm">Data brokers we work with</div>
-                </div>
-                <p className="text-indigo-100 text-sm">
-                  While other apps profit from your data, we profit from helping you achieve better health.
-                </p>
-              </div>
-            </div>
-          </motion.div>
         </div>
       </section>
 
@@ -342,7 +279,6 @@ const WelcomePage: React.FC = () => {
                   <div className="space-y-3">
                     <div className="text-sm text-green-600">✅ Revolutionary AI analysis</div>
                     <div className="text-sm text-green-600">✅ Specialized women's health AI</div>
-                    <div className="text-sm text-green-600">✅ 95% accuracy</div>
                     <div className="text-sm text-green-600">✅ Complete health platform</div>
                     <div className="text-sm text-green-600">✅ Encrypted & secure</div>
                     <div className="text-sm text-green-600">✅ Personalized for you</div>
@@ -350,68 +286,6 @@ const WelcomePage: React.FC = () => {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Loved by Women Everywhere
-            </h2>
-            <div className="flex justify-center items-center space-x-1 mb-4">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-6 h-6 text-yellow-400 fill-current" />
-              ))}
-              <span className="ml-2 text-gray-600">4.9/5 from 10,000+ users</span>
-            </div>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Sarah M.",
-                age: "28, Seattle",
-                text: "WIHHMS's photo analysis caught a skin issue I didn't even notice. It suggested I see a dermatologist, and they confirmed early melanoma. WIHHMS literally saved my life.",
-                rating: 5
-              },
-              {
-                name: "Maria R.",
-                age: "32, Miami",
-                text: "Finally, an app that understands my body as a Latina woman. The predictions are spot-on, and the AI chat actually knows about my health concerns.",
-                rating: 5
-              },
-              {
-                name: "Jennifer L.",
-                age: "25, Chicago",
-                text: "I've tried Flo, Clue, and others. None come close to WIHHMS's accuracy and features. The comprehensive health tracking is exactly what I needed.",
-                rating: 5
-              }
-            ].map((testimonial, index) => (
-              <motion.div
-                key={index}
-                className="bg-gray-50 p-8 rounded-2xl"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 * index }}
-              >
-                <div className="flex items-center space-x-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                  ))}
-                </div>
-                <p className="text-gray-700 mb-4 italic">"{testimonial.text}"</p>
-                <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                <div className="text-sm text-gray-600">{testimonial.age}</div>
-              </motion.div>
-            ))}
           </div>
         </div>
       </section>

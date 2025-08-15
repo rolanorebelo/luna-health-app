@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { analyzeHealthImage, analyzeNailHemoglobin } from '../services/healthApi';
-import { Camera, Upload, X, CheckCircle, AlertTriangle, Info, Zap, Eye, Microscope, Sparkles, Droplets } from 'lucide-react';
+import { analyzeHealthImage, analyzeNailHemoglobin, analyzePatterns } from '../services/healthApi';
+import { Camera, Upload, X, CheckCircle, AlertTriangle, Info, Zap, Eye, Microscope, Sparkles, Droplets, Target } from 'lucide-react';
 
 // Mock user profile for demo
 const mockProfile = {
@@ -14,7 +14,7 @@ const PhotoAnalysisPage: React.FC = () => {
   const profile = mockProfile;
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [analysisType, setAnalysisType] = useState<'skin' | 'discharge' | 'symptom' | 'general' | 'hemoglobin'>('skin');
+  const [analysisType, setAnalysisType] = useState<'skin' | 'discharge' | 'symptom' | 'general' | 'hemoglobin' | 'patterns'>('skin');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [showCamera, setShowCamera] = useState(false);
@@ -53,10 +53,17 @@ const PhotoAnalysisPage: React.FC = () => {
     },
     {
       id: 'hemoglobin',
-      name: 'Nail Hemoglobin',
+      name: 'Nutrition Analysis',
       icon: <Droplets className="w-6 h-6" />,
-      description: 'Analyze hemoglobin levels through nail color analysis',
+      description: 'Analyze nutrition levels through nail color analysis',
       color: 'from-red-500 to-pink-500'
+    },
+    {
+      id: 'patterns',
+      name: 'Pattern Detection',
+      icon: <Target className="w-6 h-6" />,
+      description: 'Detect and count LC droplet patterns (circular vs cross)',
+      color: 'from-orange-500 to-amber-500'
     }
   ];
 
@@ -128,11 +135,19 @@ const PhotoAnalysisPage: React.FC = () => {
       let result;
       
       if (analysisType === 'hemoglobin') {
-        // Use nail hemoglobin analysis
+        // Use nutrition analysis
         result = await analyzeNailHemoglobin(
           selectedImage,
           profile?.age,
           undefined // symptoms can be added later if needed
+        );
+      } else if (analysisType === 'patterns') {
+        // Use pattern detection analysis
+        result = await analyzePatterns(
+          selectedImage,
+          50,   // min_area
+          5000, // max_area
+          0.5   // confidence_threshold
         );
       } else {
         // Use regular health image analysis
@@ -177,7 +192,7 @@ const PhotoAnalysisPage: React.FC = () => {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Photo Analysis</h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
           {analysisType === 'hemoglobin' 
-            ? 'Analyze your hemoglobin levels through nail color analysis. Take a clear photo of your fingernails in good lighting.'
+            ? 'Analyze your nutrition levels through nail color analysis. Take a clear photo of your fingernails in good lighting.'
             : 'Get instant insights about your health through advanced AI image analysis. Take a photo or upload an image for personalized health assessment.'
           }
         </p>
@@ -227,7 +242,6 @@ const PhotoAnalysisPage: React.FC = () => {
           >
             <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Take Photo</h3>
                 <button
                   onClick={() => setShowCamera(false)}
                   className="p-2 hover:bg-gray-100 rounded-xl"
@@ -271,19 +285,10 @@ const PhotoAnalysisPage: React.FC = () => {
           transition={{ delay: 0.2 }}
         >
           <div className="text-center">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button
-                onClick={startCamera}
-                className="p-6 border-2 border-dashed border-purple-300 rounded-2xl hover:border-purple-500 hover:bg-purple-50 transition-all group"
-              >
-                <Camera className="w-8 h-8 text-purple-600 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="font-semibold text-gray-900 mb-1">Take Photo</h3>
-                <p className="text-sm text-gray-600">Use your camera for instant analysis</p>
-              </button>
-
+            <div className="flex justify-center">
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-6 border-2 border-dashed border-gray-300 rounded-2xl hover:border-gray-500 hover:bg-gray-50 transition-all group"
+                className="p-8 w-full max-w-md border-2 border-dashed border-gray-300 rounded-2xl hover:border-gray-500 hover:bg-gray-50 transition-all group"
               >
                 <Upload className="w-8 h-8 text-gray-600 mx-auto mb-3 group-hover:scale-110 transition-transform" />
                 <h3 className="font-semibold text-gray-900 mb-1">Upload Image</h3>
@@ -300,7 +305,7 @@ const PhotoAnalysisPage: React.FC = () => {
             />
 
             <div className="mt-6 space-y-4">
-              {/* Special instructions for nail hemoglobin analysis */}
+              {/* Special instructions for nutrition analysis */}
               {analysisType === 'hemoglobin' && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
                   <Droplets className="w-5 h-5 text-red-600 mx-auto mb-2" />
@@ -425,7 +430,7 @@ const PhotoAnalysisPage: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                {/* Hemoglobin-specific results */}
+                {/* Nutrition-specific results */}
                 {analysisType === 'hemoglobin' && analysisResult.nail_analysis && (
                   <div className="space-y-4">
                     {/* Hemoglobin Level Display */}
@@ -469,6 +474,88 @@ const PhotoAnalysisPage: React.FC = () => {
                       </p>
                       <div className="mt-2 text-xs text-gray-600">
                         Normal range for women: 120-160 g/L
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Pattern Detection Results */}
+                {analysisType === 'patterns' && analysisResult.pattern_analysis && (
+                  <div className="space-y-4">
+                    {/* Pattern Summary */}
+                    <div className="p-4 rounded-xl bg-orange-50 border border-orange-200">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Target className="w-5 h-5 text-orange-600" />
+                        <h4 className="font-semibold text-orange-800">
+                          Pattern Detection Results
+                        </h4>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 mt-3">
+                        <div className="text-center p-3 bg-white rounded-lg">
+                          <div className="text-2xl font-bold text-blue-600">
+                            {analysisResult.pattern_analysis.circular_patterns}
+                          </div>
+                          <div className="text-sm text-gray-600">Circular Patterns</div>
+                        </div>
+                        <div className="text-center p-3 bg-white rounded-lg">
+                          <div className="text-2xl font-bold text-red-600">
+                            {analysisResult.pattern_analysis.cross_patterns}
+                          </div>
+                          <div className="text-sm text-gray-600">Cross Patterns</div>
+                        </div>
+                      </div>
+                      <div className="mt-3 text-center">
+                        <div className="text-lg font-semibold text-orange-800">
+                          Total: {analysisResult.pattern_analysis.total_patterns_detected} patterns detected
+                        </div>
+                        {analysisResult.pattern_analysis.uncertain_patterns > 0 && (
+                          <div className="text-sm text-gray-600 mt-1">
+                            ({analysisResult.pattern_analysis.uncertain_patterns} uncertain)
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Pattern Distribution */}
+                    <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
+                      <h5 className="font-medium text-gray-800 mb-3">Pattern Distribution</h5>
+                      <div className="space-y-2">
+                        {analysisResult.pattern_analysis.circular_patterns > 0 && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">Bipolar-Circle</span>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-20 bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-blue-500 h-2 rounded-full" 
+                                  style={{
+                                    width: `${(analysisResult.pattern_analysis.circular_patterns / analysisResult.pattern_analysis.total_patterns_detected) * 100}%`
+                                  }}
+                                ></div>
+                              </div>
+                              <span className="text-sm font-medium">
+                                {Math.round((analysisResult.pattern_analysis.circular_patterns / analysisResult.pattern_analysis.total_patterns_detected) * 100)}%
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                        {analysisResult.pattern_analysis.cross_patterns > 0 && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">Radial-Cross</span>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-20 bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-red-500 h-2 rounded-full" 
+                                  style={{
+                                    width: `${(analysisResult.pattern_analysis.cross_patterns / analysisResult.pattern_analysis.total_patterns_detected) * 100}%`
+                                  }}
+                                ></div>
+                              </div>
+                              <span className="text-sm font-medium">
+                                {Math.round((analysisResult.pattern_analysis.cross_patterns / analysisResult.pattern_analysis.total_patterns_detected) * 100)}%
+                              </span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -526,52 +613,56 @@ const PhotoAnalysisPage: React.FC = () => {
           </div>
 
           {/* Detailed Findings */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Detailed Findings</h4>
-            <div className="space-y-4">
-              {/* Show image classifications if present */}
-              {analysisResult.image_analysis?.classifications?.map((item: any, index: number) => (
-                <div key={index} className="p-4 border border-gray-200 rounded-xl">
-                  <div className="flex items-center justify-between mb-2">
-                    <h5 className="font-medium text-gray-900">{item.label}</h5>
-                    <span className="px-3 py-1 rounded-full text-xs font-medium text-purple-700 bg-purple-50">
-                      {(item.score * 100).toFixed(1)}%
-                    </span>
+          {analysisType !== 'patterns' && (
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Detailed Findings</h4>
+              <div className="space-y-4">
+                {/* Show image classifications if present */}
+                {analysisResult.image_analysis?.classifications?.map((item: any, index: number) => (
+                  <div key={index} className="p-4 border border-gray-200 rounded-xl">
+                    <div className="flex items-center justify-between mb-2">
+                      <h5 className="font-medium text-gray-900">{item.label}</h5>
+                      <span className="px-3 py-1 rounded-full text-xs font-medium text-purple-700 bg-purple-50">
+                        {(item.score * 100).toFixed(1)}%
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
 
-              {/* Show possible causes if present */}
-              {analysisResult.health_assessment?.possible_causes?.map((cause: string, index: number) => (
-                <div key={index} className="p-2 text-sm text-gray-700">
-                  • {cause}
-                </div>
-              ))}
+                {/* Show possible causes if present */}
+                {analysisResult.health_assessment?.possible_causes?.map((cause: string, index: number) => (
+                  <div key={index} className="p-2 text-sm text-gray-700">
+                    • {cause}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Recommendations */}
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Personalized Recommendations</h4>
-            <div className="space-y-3">
-              {analysisResult.health_assessment?.self_care?.map((rec: string, index: number) => (
-                <div key={index} className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-medium text-purple-600">{index + 1}</span>
+          {analysisType !== 'patterns' && (
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Personalized Recommendations</h4>
+              <div className="space-y-3">
+                {analysisResult.health_assessment?.self_care?.map((rec: string, index: number) => (
+                  <div key={index} className="flex items-start space-x-3">
+                    <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-xs font-medium text-purple-600">{index + 1}</span>
+                    </div>
+                    <p className="text-sm text-gray-700">{rec}</p>
                   </div>
-                  <p className="text-sm text-gray-700">{rec}</p>
-                </div>
-              ))}
-              {/* Disclaimers */}
-              {analysisResult.health_assessment?.disclaimers?.length > 0 && (
-                <div className="mt-4 text-xs text-gray-500 space-y-1">
-                  {analysisResult.health_assessment.disclaimers.map((d: string, i: number) => (
-                    <div key={i}>* {d}</div>
-                  ))}
-                </div>
-              )}
+                ))}
+                {/* Disclaimers */}
+                {analysisResult.health_assessment?.disclaimers?.length > 0 && (
+                  <div className="mt-4 text-xs text-gray-500 space-y-1">
+                    {analysisResult.health_assessment.disclaimers.map((d: string, i: number) => (
+                      <div key={i}>* {d}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex space-x-4">

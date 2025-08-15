@@ -371,3 +371,42 @@ export interface NailHemoglobinResponse {
   };
   timestamp: string;
 }
+
+// Pattern Detection Types
+export interface PatternDetection {
+  bbox: [number, number, number, number]; // [x, y, width, height]
+  class: 'bipolar-circle' | 'radial-cross' | 'uncertain' | 'error';
+  confidence: number;
+}
+
+export interface PatternAnalysisResult {
+  total_patterns_detected: number;
+  pattern_counts: {
+    'bipolar-circle': number;
+    'radial-cross': number;
+    uncertain: number;
+    error: number;
+  };
+  circular_patterns: number;
+  cross_patterns: number;
+  uncertain_patterns: number;
+  confidence_threshold: number;
+  detection_parameters: {
+    min_area: number;
+    max_area: number;
+  };
+  individual_detections: PatternDetection[];
+}
+
+export interface PatternDetectionResponse {
+  status: 'success' | 'error';
+  pattern_analysis: PatternAnalysisResult;
+  summary: {
+    total_patterns: number;
+    circular_patterns: number;
+    cross_patterns: number;
+    uncertain_patterns: number;
+    analysis_quality: 'high' | 'no_patterns' | 'low';
+  };
+  timestamp: string;
+}

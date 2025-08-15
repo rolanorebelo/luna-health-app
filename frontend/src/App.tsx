@@ -10,6 +10,8 @@ import OnboardingPage from './pages/OnboardingPage';
 import HomePage from './pages/HomePage';
 import DashboardPage from './pages/DashboardPage';
 import CyclePage from './pages/CyclePage';
+import GutBalancePage from './pages/GutBalancePage';
+import SensorPage from './pages/SensorPage';
 import PhotoAnalysisPage from './pages/PhotoAnalysisPage';
 import ChatPage from './pages/ChatPage';
 import ProfilePage from './pages/ProfilePage';
@@ -100,6 +102,18 @@ function App() {
                 <Route path="/cycle" element={
                   <Layout>
                     <CyclePage />
+                  </Layout>
+                } />
+                
+                <Route path="/gut-balance" element={
+                  <Layout>
+                    <GutBalancePage />
+                  </Layout>
+                } />
+                
+                <Route path="/sensor" element={
+                  <Layout>
+                    <SensorPage />
                   </Layout>
                 } />
                 

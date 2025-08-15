@@ -8,6 +8,7 @@ import json
 from app.services.vision_analysis import VisionAnalysisService
 from app.services.llm_health_service import LLMHealthService
 from app.services.nail_hemoglobin_service import NailHemoglobinService
+from app.services.pattern_detection_service import PatternDetectionService
 from app.core.config import settings
 
 router = APIRouter()
@@ -16,6 +17,7 @@ router = APIRouter()
 vision_service = VisionAnalysisService()
 llm_service = LLMHealthService()
 nail_hemoglobin_service = NailHemoglobinService()
+pattern_detection_service = PatternDetectionService()
 
 @router.post("/analyze-image")
 async def analyze_health_image(
@@ -166,7 +168,98 @@ async def analyze_nail_hemoglobin(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
+@router.post("/analyze-patterns")
+async def analyze_pattern_detection(
+    file: UploadFile = File(...),
+    min_area: Optional[int] = Form(50),
+    max_area: Optional[int] = Form(5000),
+    confidence_threshold: Optional[float] = Form(0.5)
+):
+    """
+    Analyze LC droplet patterns in images - detect and count circular vs cross patterns
+    """
+    # Check if models are available
+    model_status = pattern_detection_service.check_models_available()
+    if not model_status['models_ready']:
+        raise HTTPException(
+            status_code=503, 
+            detail="Pattern detection service is not available. Model files are missing."
+        )
+    
+    # Validate file
+    if file.content_type not in ["image/jpeg", "image/png", "image/webp"]:
+        raise HTTPException(status_code=400, detail="Invalid file type. Please upload a JPEG, PNG, or WebP image.")
+    
+    # Check file size
+    if file.size and file.size > settings.MAX_UPLOAD_SIZE:
+        raise HTTPException(status_code=400, detail="File too large")
+    
+    try:
+        # Read and process image
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents))
+        
+        # Perform pattern detection and classification
+        pattern_analysis_result = await pattern_detection_service.analyze_patterns(
+            image=image,
+            min_area=min_area,
+            max_area=max_area,
+            confidence_threshold=confidence_threshold
+        )
+        
+        # If analysis failed, return early
+        if not pattern_analysis_result.get('success', False):
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "status": "error",
+                    "message": pattern_analysis_result.get('message', 'Pattern analysis failed'),
+                    "pattern_analysis": pattern_analysis_result.get('pattern_analysis', {})
+                }
+            )
+        
+        # Create response
+        final_response = {
+            "status": "success",
+            "pattern_analysis": pattern_analysis_result['pattern_analysis'],
+            "summary": {
+                "total_patterns": pattern_analysis_result['pattern_analysis']['total_patterns_detected'],
+                "circular_patterns": pattern_analysis_result['pattern_analysis']['circular_patterns'],
+                "cross_patterns": pattern_analysis_result['pattern_analysis']['cross_patterns'],
+                "uncertain_patterns": pattern_analysis_result['pattern_analysis']['uncertain_patterns'],
+                "analysis_quality": "high" if pattern_analysis_result['pattern_analysis']['total_patterns_detected'] > 0 else "no_patterns"
+            },
+            "timestamp": pattern_analysis_result['timestamp']
+        }
+        
+        return JSONResponse(content=final_response)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Pattern analysis failed: {str(e)}")
+
 @router.get("/health-check")
+async def health_check():
+    """Check if the service is running"""
+    return {"status": "healthy", "service": "Luna Health AI"}
+
+@router.get("/pattern-status")
+async def pattern_service_status():
+    """Check if the pattern detection service is available"""
+    try:
+        model_status = pattern_detection_service.check_models_available()
+        return {
+            "status": "ready" if model_status['models_ready'] else "not_ready",
+            "models": model_status,
+            "service": "Pattern Detection Analysis"
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "service": "Pattern Detection Analysis"
+        }
+
+@router.get("/hemoglobin-status")
 async def health_check():
     """Check if the service is running"""
     return {"status": "healthy", "service": "Luna Health AI"}
@@ -186,4 +279,42 @@ async def hemoglobin_service_status():
             "status": "error",
             "error": str(e),
             "service": "Nail Hemoglobin Analysis"
+        }
+
+@router.post("/generate-cycle-insight")
+async def generate_cycle_insight(
+    current_cycle_day: int,
+    cycle_length: int,
+    period_length: int,
+    last_period_date: str,
+    health_goals: Optional[List[str]] = None,
+    reproductive_stage: Optional[str] = None
+):
+    """
+    Generate personalized cycle insight using LLM
+    """
+    try:
+        insight = await llm_service.generate_cycle_insight(
+            current_cycle_day=current_cycle_day,
+            cycle_length=cycle_length,
+            period_length=period_length,
+            last_period_date=last_period_date,
+            health_goals=health_goals,
+            reproductive_stage=reproductive_stage
+        )
+        
+        return {
+            "status": "success",
+            "insight": insight
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "insight": {
+                "title": "Cycle Update",
+                "description": "Stay in tune with your cycle and listen to your body's needs.",
+                "type": "info",
+                "action": "Track Cycle"
+            }
         }

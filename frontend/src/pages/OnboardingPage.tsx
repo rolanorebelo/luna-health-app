@@ -9,6 +9,8 @@ interface OnboardingData {
     firstName: string;
     lastName: string;
     dateOfBirth: string;
+    height: string;
+    weight: string;
     race: string;
     location: string;
   };
@@ -59,6 +61,8 @@ const OnboardingPage: React.FC = () => {
       firstName: '',
       lastName: '',
       dateOfBirth: '',
+      height: '',
+      weight: '',
       race: '',
       location: ''
     },
@@ -203,17 +207,46 @@ const OnboardingPage: React.FC = () => {
 
   const completeOnboarding = async () => {
     try {
-      // Update profile with onboarding data
+      // Debug: log the form data before saving
+      console.log('Form data before saving:', formData);
+      console.log('Weight form data:', formData.personalInfo.weight);
+      console.log('Weight parsed:', formData.personalInfo.weight ? parseInt(formData.personalInfo.weight, 10) : undefined);
+      
+      // Update profile with all onboarding data
       await updateProfile({
         onboardingCompleted: true,
-        age: calculateAge(formData.personalInfo.dateOfBirth),
+        firstName: formData.personalInfo.firstName,
+        lastName: formData.personalInfo.lastName,
+        age: formData.personalInfo.dateOfBirth ? calculateAge(formData.personalInfo.dateOfBirth) : undefined,
+        height: formData.personalInfo.height ? parseInt(formData.personalInfo.height, 10) : undefined,
+        weight: formData.personalInfo.weight ? parseInt(formData.personalInfo.weight, 10) : undefined,
+        race: formData.personalInfo.race,
+        location: formData.personalInfo.location,
         reproductiveStage: formData.reproductiveHealth.stage as any,
+        reproductiveHealth: {
+          lastPeriodDate: formData.reproductiveHealth.lastPeriodDate,
+          averageCycleLength: formData.reproductiveHealth.averageCycleLength,
+          periodLength: formData.reproductiveHealth.periodLength
+        },
         healthGoals: formData.healthGoals as any,
-        firstName: formData.personalInfo.firstName
+        medicalConditions: formData.medicalHistory.conditions,
+        lifestyle: {
+          exerciseFrequency: formData.lifestyle.exerciseFrequency,
+          sleepHours: formData.lifestyle.sleepHours,
+          stressLevel: formData.lifestyle.stressLevel,
+          smokingStatus: formData.lifestyle.smokingStatus,
+          alcoholConsumption: formData.lifestyle.alcoholConsumption,
+          dietType: formData.lifestyle.dietType
+        },
+        preferences: {
+          privacy: formData.preferences.privacy
+        }
       });
       
-      // Navigate to home page
-      navigate('/');
+      console.log('Onboarding completed with data:', formData);
+      
+      // Navigate to profile page to see the saved data
+      navigate('/profile');
     } catch (error) {
       console.error('Failed to complete onboarding:', error);
     }
@@ -233,7 +266,7 @@ const OnboardingPage: React.FC = () => {
               <div className="text-left max-w-md mx-auto space-y-3">
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                  <span className="text-gray-700">Smart cycle tracking with 95% accuracy</span>
+                  <span className="text-gray-700">Smart cycle tracking</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
@@ -296,6 +329,33 @@ const OnboardingPage: React.FC = () => {
                 onChange={(e) => updateFormData('personalInfo', 'dateOfBirth', e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Height (cm)</label>
+                <input
+                  type="number"
+                  value={formData.personalInfo.height}
+                  onChange={(e) => updateFormData('personalInfo', 'height', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Enter your height in cm"
+                  min="100"
+                  max="250"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
+                <input
+                  type="number"
+                  value={formData.personalInfo.weight}
+                  onChange={(e) => updateFormData('personalInfo', 'weight', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Enter your weight in kg"
+                  min="30"
+                  max="200"
+                />
+              </div>
             </div>
 
             <div>
@@ -474,11 +534,17 @@ const OnboardingPage: React.FC = () => {
                 <button
                   key={goal.id}
                   onClick={() => {
-                    const isSelected = formData.healthGoals.includes(goal.id);
-                    updateArrayField('healthGoals', '', goal.id, !isSelected);
+                    const currentGoals = Array.isArray(formData.healthGoals) ? formData.healthGoals : [];
+                    const isSelected = currentGoals.includes(goal.id);
+                    setFormData(prev => ({
+                      ...prev,
+                      healthGoals: isSelected
+                        ? currentGoals.filter(id => id !== goal.id)
+                        : [...currentGoals, goal.id]
+                    }));
                   }}
                   className={`p-4 text-left border-2 rounded-xl transition-all ${
-                    formData.healthGoals.includes(goal.id)
+                    Array.isArray(formData.healthGoals) && formData.healthGoals.includes(goal.id)
                       ? 'border-purple-500 bg-purple-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
@@ -489,7 +555,7 @@ const OnboardingPage: React.FC = () => {
                       <h3 className="font-medium text-gray-900">{goal.label}</h3>
                       <p className="text-sm text-gray-600 mt-1">{goal.description}</p>
                     </div>
-                    {formData.healthGoals.includes(goal.id) && (
+                    {Array.isArray(formData.healthGoals) && formData.healthGoals.includes(goal.id) && (
                       <CheckCircle className="w-5 h-5 text-purple-600 ml-auto" />
                     )}
                   </div>
@@ -684,75 +750,6 @@ const OnboardingPage: React.FC = () => {
             <div className="text-center">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Preferences</h2>
               <p className="text-gray-600">Customize your WIHHMS experience</p>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Notification Preferences</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium text-gray-900">Period Reminders</h4>
-                    <p className="text-sm text-gray-600">Get notified before your period starts</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={formData.preferences.notifications.periodReminders}
-                    onChange={(e) => updateFormData('preferences', 'notifications', {
-                      ...formData.preferences.notifications,
-                      periodReminders: e.target.checked
-                    })}
-                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium text-gray-900">Ovulation Alerts</h4>
-                    <p className="text-sm text-gray-600">Fertility window notifications</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={formData.preferences.notifications.ovulationAlerts}
-                    onChange={(e) => updateFormData('preferences', 'notifications', {
-                      ...formData.preferences.notifications,
-                      ovulationAlerts: e.target.checked
-                    })}
-                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium text-gray-900">Health Tips</h4>
-                    <p className="text-sm text-gray-600">Personalized health recommendations</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={formData.preferences.notifications.healthTips}
-                    onChange={(e) => updateFormData('preferences', 'notifications', {
-                      ...formData.preferences.notifications,
-                      healthTips: e.target.checked
-                    })}
-                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium text-gray-900">Appointment Reminders</h4>
-                    <p className="text-sm text-gray-600">Healthcare appointment notifications</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={formData.preferences.notifications.appointmentReminders}
-                    onChange={(e) => updateFormData('preferences', 'notifications', {
-                      ...formData.preferences.notifications,
-                      appointmentReminders: e.target.checked
-                    })}
-                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                  />
-                </div>
-              </div>
             </div>
 
             <div className="bg-white rounded-xl p-6 border border-gray-200">

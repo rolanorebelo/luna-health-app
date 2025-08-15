@@ -36,6 +36,11 @@ const ProfilePage: React.FC = () => {
   const [editing, setEditing] = useState<EditingState>({ section: null, data: {} });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // Debug: Check what's actually stored in the profile
+  console.log('🔍 Profile data:', profile);
+  console.log('🔍 Profile weight:', profile?.weight);
+  console.log('🔍 Profile weight type:', typeof profile?.weight);
+
   const reproductiveStages = [
     { id: 'puberty', label: 'Puberty (9-16 years)' },
     { id: 'sexually-active', label: 'Sexually Active' },
@@ -165,7 +170,7 @@ const ProfilePage: React.FC = () => {
 
       {/* Quick Stats */}
       <motion.div 
-        className="grid grid-cols-1 md:grid-cols-4 gap-4"
+        className="grid grid-cols-2 md:grid-cols-4 gap-4"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
@@ -184,36 +189,36 @@ const ProfilePage: React.FC = () => {
 
         <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
           <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <Dumbbell className="w-5 h-5 text-green-600" />
+            </div>
+            <div>
+              <div className="text-lg font-bold text-gray-900">{profile.height ? `${profile.height} cm` : '—'}</div>
+              <div className="text-sm text-gray-600">Height</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+              <Apple className="w-5 h-5 text-orange-600" />
+            </div>
+            <div>
+              <div className="text-lg font-bold text-gray-900">{profile.weight ? `${profile.weight} kg` : '—'}</div>
+              <div className="text-sm text-gray-600">Weight</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+          <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
               <Heart className="w-5 h-5 text-pink-600" />
             </div>
             <div>
               <div className="text-lg font-bold text-gray-900">{profile.healthGoals?.length || 0}</div>
               <div className="text-sm text-gray-600">Health Goals</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-            </div>
-            <div>
-              <div className="text-lg font-bold text-gray-900">Active</div>
-              <div className="text-sm text-gray-600">Account Status</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-purple-600" />
-            </div>
-            <div>
-              <div className="text-lg font-bold text-gray-900">Premium</div>
-              <div className="text-sm text-gray-600">Plan</div>
             </div>
           </div>
         </div>
@@ -236,6 +241,8 @@ const ProfilePage: React.FC = () => {
               onClick={() => startEditing('personal', {
                 firstName: profile.firstName,
                 lastName: profile.lastName,
+                height: profile.height,
+                weight: profile.weight,
                 race: profile.race,
                 location: profile.location
               })}
@@ -266,6 +273,33 @@ const ProfilePage: React.FC = () => {
                   value={editing.data.lastName || ''}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Height (cm)</label>
+                <input
+                  type="number"
+                  value={editing.data.height || ''}
+                  onChange={(e) => handleInputChange('height', parseInt(e.target.value) || undefined)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Height in cm"
+                  min="100"
+                  max="250"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
+                <input
+                  type="number"
+                  value={editing.data.weight || ''}
+                  onChange={(e) => handleInputChange('weight', parseInt(e.target.value) || undefined)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Weight in kg"
+                  min="30"
+                  max="200"
                 />
               </div>
             </div>
@@ -327,6 +361,14 @@ const ProfilePage: React.FC = () => {
             <div>
               <div className="text-sm text-gray-600">Age</div>
               <div className="font-medium">{profile.age || 'Not specified'}</div>
+            </div>
+            <div>
+              <div className="text-sm text-gray-600">Height</div>
+              <div className="font-medium">{profile.height ? `${profile.height} cm` : 'Not specified'}</div>
+            </div>
+            <div>
+              <div className="text-sm text-gray-600">Weight</div>
+              <div className="font-medium">{profile.weight ? `${profile.weight} kg` : 'Not specified'}</div>
             </div>
             <div>
               <div className="text-sm text-gray-600">Race/Ethnicity</div>

@@ -10,7 +10,8 @@ import {
   Heart,
   Brain,
   Moon,
-  Activity
+  Activity,
+  Pill
 } from 'lucide-react';
 import useAuthStore from '../../stores/authStore';
 
@@ -27,6 +28,38 @@ const Sidebar: React.FC = () => {
   const location = useLocation();
   const { profile } = useAuthStore(); // Using 'profile' instead of 'user'
 
+  // Calculate current cycle day
+  const getCurrentCycleDay = (): number => {
+    if (!profile?.reproductiveHealth) {
+      return 1;
+    }
+    
+    const { 
+      lastPeriodDate = new Date().toISOString().split('T')[0], 
+      averageCycleLength = 28 
+    } = profile.reproductiveHealth;
+    
+    const today = new Date();
+    const lastPeriod = new Date(lastPeriodDate);
+    
+    // Calculate days since last period
+    const daysSinceLastPeriod = Math.floor((today.getTime() - lastPeriod.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Calculate current cycle day
+    let currentCycleDay;
+    if (daysSinceLastPeriod >= 0) {
+      currentCycleDay = (daysSinceLastPeriod % averageCycleLength) + 1;
+    } else {
+      // Handle days before the last period (previous cycle)
+      const daysFromPreviousCycle = Math.abs(daysSinceLastPeriod) % averageCycleLength;
+      currentCycleDay = averageCycleLength - daysFromPreviousCycle + 1;
+    }
+    
+    return currentCycleDay;
+  };
+
+  const currentCycleDay = getCurrentCycleDay();
+
   const navItems: NavItem[] = [
     {
       id: 'home',
@@ -41,6 +74,20 @@ const Sidebar: React.FC = () => {
       icon: <Calendar className="w-5 h-5" />,
       path: '/cycle',
       color: 'text-pink-600'
+    },
+    {
+      id: 'gut-balance',
+      label: 'WIHHMS Gut Balance',
+      icon: <Pill className="w-5 h-5" />,
+      path: '/gut-balance',
+      color: 'text-purple-600'
+    },
+    {
+      id: 'sensor',
+      label: 'WIHHMS Smart Sensor',
+      icon: <Activity className="w-5 h-5" />,
+      path: '/sensor',
+      color: 'text-blue-600'
     },
     {
       id: 'photo-analysis',
@@ -151,7 +198,7 @@ const Sidebar: React.FC = () => {
               <Calendar className="w-4 h-4 text-yellow-600" />
               <span className="text-sm font-medium text-yellow-900">Cycle Day</span>
             </div>
-            <span className="text-sm font-bold text-yellow-700">14</span>
+            <span className="text-sm font-bold text-yellow-700">{currentCycleDay}</span>
           </div>
         </div>
       </div>

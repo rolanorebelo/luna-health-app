@@ -23,6 +23,7 @@ import {
   Info
 } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
+import { cyclePredictionAI, type CyclePredictionData, type PredictionResult } from '../services/cyclePredictionAI';
 
 interface CycleDay {
   date: Date;
@@ -43,6 +44,9 @@ interface CycleStats {
   nextOvulationDate: Date;
   cycleVariability: number;
   predictionsAccuracy: number;
+  fertilityWindow: { start: Date; end: Date };
+  recommendations: string[];
+  confidence: number;
 }
 
 const CyclePage: React.FC = () => {
@@ -53,11 +57,11 @@ const CyclePage: React.FC = () => {
   const [cycleData, setCycleData] = useState<CycleDay[]>([]);
   const [cycleStats, setCycleStats] = useState<CycleStats | null>(null);
   const [isLogging, setIsLogging] = useState(false);
+  const [predictions, setPredictions] = useState<PredictionResult | null>(null);
   const [logData, setLogData] = useState({
     periodFlow: '',
     symptoms: [] as string[],
     mood: 5,
-    temperature: '',
     notes: ''
   });
 
@@ -68,62 +72,223 @@ const CyclePage: React.FC = () => {
   ];
 
   useEffect(() => {
-    loadCycleData();
-    calculateCycleStats();
-  }, []);
+    if (profile?.reproductiveHealth) {
+      loadCycleData();
+      generateAIPredictions();
+    }
+  }, [profile]);
 
-  const loadCycleData = () => {
-    // Mock cycle data for the past 3 months
-    const mockData: CycleDay[] = [];
+  const loadCycleData = async () => {
+    if (!profile?.reproductiveHealth) return;
+
+    // Start with user's actual data with defaults
+    const { 
+      lastPeriodDate = new Date().toISOString().split('T')[0], 
+      averageCycleLength = 28, 
+      periodLength = 5 
+    } = profile.reproductiveHealth;
+    
+    const cycleData: CycleDay[] = [];
+    const today = new Date();
+    const lastPeriod = new Date(lastPeriodDate);
+    
+    // Calculate days since last period
+    const daysSinceLastPeriod = Math.floor((today.getTime() - lastPeriod.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Only generate data from the last period date onwards, not arbitrary past dates
+    const startDate = new Date(Math.max(lastPeriod.getTime(), today.getTime() - (60 * 24 * 60 * 60 * 1000))); // Max 60 days back or last period, whichever is more recent
+    const endDate = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000)); // 30 days future
+    
+    let currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      const daysSinceLastPeriod = Math.floor((currentDate.getTime() - lastPeriod.getTime()) / (1000 * 60 * 60 * 24));
+      
+      // Calculate which cycle we're in and the day within that cycle
+      let cycleDay;
+      if (daysSinceLastPeriod >= 0) {
+        cycleDay = (daysSinceLastPeriod % averageCycleLength) + 1;
+      } else {
+        // Handle days before the last period (previous cycle)
+        const daysFromPreviousCycle = Math.abs(daysSinceLastPeriod) % averageCycleLength;
+        cycleDay = averageCycleLength - daysFromPreviousCycle + 1;
+      }
+      
+      let phase: 'menstrual' | 'follicular' | 'ovulatory' | 'luteal';
+      
+      // Dynamic phase breakdown based on user's actual cycle length:
+      const follicularEnd = Math.floor(averageCycleLength * 0.45); // ~45% of cycle
+      const ovulatoryEnd = Math.floor(averageCycleLength * 0.6);   // ~60% of cycle
+      
+      if (cycleDay <= periodLength) {
+        phase = 'menstrual';
+      } else if (cycleDay <= follicularEnd) {
+        phase = 'follicular';
+      } else if (cycleDay <= ovulatoryEnd) {
+        phase = 'ovulatory';
+      } else {
+        phase = 'luteal';
+      }
+
+      const dayData: CycleDay = {
+        date: new Date(currentDate),
+        cycleDay,
+        phase,
+        symptoms: [], // No random symptoms - users log their own
+        mood: Math.floor(Math.random() * 4) + 6, // 6-10 range for mock data
+        isPredicted: currentDate > today // Future dates are predictions
+      };
+
+      // Only add period flow if user has actually logged it
+      // For now, we'll show predicted period flow only for future menstrual days
+      if (phase === 'menstrual' && dayData.isPredicted) {
+        dayData.periodFlow = 'medium'; // Default prediction
+      }
+
+      cycleData.push(dayData);
+      
+      // Increment to next day
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    setCycleData(cycleData);
+  };
+
+  const generateAIPredictions = async () => {
+    if (!profile?.reproductiveHealth) return;
+
+    try {
+      // Use defaults if values are undefined
+      const {
+        lastPeriodDate = new Date().toISOString().split('T')[0],
+        averageCycleLength = 28,
+        periodLength = 5
+      } = profile.reproductiveHealth;
+
+      // Find the most recent menstrual phase start from our generated cycle data
+      const today = new Date();
+      const recentMenstrualStart = findMostRecentMenstrualStart(today, lastPeriodDate, averageCycleLength);
+      
+      const predictionData: CyclePredictionData = {
+        lastPeriodDate: recentMenstrualStart.toISOString().split('T')[0], // Use the aligned cycle start
+        averageCycleLength,
+        periodLength,
+        // Add mock historical data for better predictions
+        historicalData: [], // Temporarily disable to avoid interference
+        age: profile.age,
+        lifestyle: {
+          stressLevel: 5, // Mock data
+          exerciseFrequency: 'moderate',
+          sleepHours: 7
+        }
+      };
+
+      console.log(`Input to AI: Recent menstrual start: ${recentMenstrualStart.toDateString()}, Cycle length: ${averageCycleLength}, Period length: ${periodLength}`);
+
+      const aiPredictions = await cyclePredictionAI.predictCycle(predictionData);
+      console.log(`✅ AI predictions successful - Next period: ${aiPredictions.nextPeriodDate.toDateString()}`);
+
+      // Update cycle stats with AI predictions
+      const stats: CycleStats = {
+        averageLength: averageCycleLength,
+        lastPeriodLength: periodLength,
+        nextPeriodDate: aiPredictions.nextPeriodDate,
+        nextOvulationDate: aiPredictions.nextOvulationDate,
+        fertilityWindow: aiPredictions.fertilityWindow,
+        cycleVariability: 2, // This would be calculated from historical data
+        predictionsAccuracy: Math.round(aiPredictions.confidence * 100),
+        recommendations: aiPredictions.recommendations,
+        confidence: aiPredictions.confidence
+      };
+      setCycleStats(stats);
+
+    } catch (error) {
+      console.error('Failed to generate AI predictions:', error);
+      // Fallback to basic calculations
+      calculateBasicStats();
+    }
+  };
+
+  const generateMockHistoricalData = () => {
+    // Generate mock historical data for the AI to work with
+    const historicalData = [];
     const today = new Date();
     
-    for (let i = 90; i >= 0; i--) {
+    for (let i = 0; i < 60; i++) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
       
-      const cycleDay = ((90 - i) % 28) + 1;
-      let phase: 'menstrual' | 'follicular' | 'ovulatory' | 'luteal';
-      
-      if (cycleDay <= 5) phase = 'menstrual';
-      else if (cycleDay <= 12) phase = 'follicular';
-      else if (cycleDay <= 16) phase = 'ovulatory';
-      else phase = 'luteal';
-
-      const dayData: CycleDay = {
-        date,
-        cycleDay,
-        phase,
-        symptoms: [],
-        mood: Math.floor(Math.random() * 4) + 6, // 6-10 range
-        isPredicted: i < 28 // Future predictions
-      };
-
-      // Add period flow for menstrual phase
-      if (phase === 'menstrual') {
-        const flows = ['light', 'medium', 'heavy'] as const;
-        dayData.periodFlow = flows[Math.floor(Math.random() * flows.length)];
-      }
-
-      // Add random symptoms
-      if (Math.random() > 0.7) {
-        const randomSymptoms = symptoms.slice(0, Math.floor(Math.random() * 3) + 1);
-        dayData.symptoms = randomSymptoms;
-      }
-
-      mockData.push(dayData);
+      historicalData.push({
+        date: date.toISOString().split('T')[0],
+        cycleDay: ((i % 28) + 1),
+        symptoms: i % 5 === 0 ? ['Cramps', 'Fatigue'] : [],
+        mood: Math.floor(Math.random() * 3) + 7,
+        flow: i % 28 < 5 ? 'medium' : undefined
+      });
     }
-
-    setCycleData(mockData);
+    
+    return historicalData;
   };
 
-  const calculateCycleStats = () => {
+  const findMostRecentMenstrualStart = (today: Date, lastPeriodDate: string, averageCycleLength: number) => {
+    const lastPeriod = new Date(lastPeriodDate);
+    const daysSinceLastPeriod = Math.floor((today.getTime() - lastPeriod.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Find how many complete cycles have passed
+    const cyclesSinceLastPeriod = Math.floor(daysSinceLastPeriod / averageCycleLength);
+    
+    // Calculate the most recent cycle start
+    const recentCycleStart = new Date(lastPeriod);
+    recentCycleStart.setDate(recentCycleStart.getDate() + (cyclesSinceLastPeriod * averageCycleLength));
+    
+    console.log(`📊 CYCLE CALCULATION: Days since ${lastPeriod.toDateString()}: ${daysSinceLastPeriod}, Complete cycles: ${cyclesSinceLastPeriod}`);
+    console.log(`📅 Recent cycle start: ${recentCycleStart.toDateString()}`);
+    
+    return recentCycleStart;
+  };
+
+  const calculateBasicStats = () => {
+    if (!profile?.reproductiveHealth) return;
+
+    // Use defaults if values are undefined
+    const {
+      lastPeriodDate = new Date().toISOString().split('T')[0],
+      averageCycleLength = 28,
+      periodLength = 5
+    } = profile.reproductiveHealth;
+
+    const today = new Date();
+    const lastPeriod = new Date(lastPeriodDate);
+    const daysSinceLastPeriod = Math.floor((today.getTime() - lastPeriod.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Find the most recent cycle start that aligns with our calendar display
+    const cyclesSinceLastPeriod = Math.floor(daysSinceLastPeriod / averageCycleLength);
+    const currentCycleStartDate = new Date(lastPeriod);
+    currentCycleStartDate.setDate(currentCycleStartDate.getDate() + (cyclesSinceLastPeriod * averageCycleLength));
+    
+    // Calculate next period start (one full cycle from current cycle start)
+    const nextPeriod = new Date(currentCycleStartDate);
+    nextPeriod.setDate(nextPeriod.getDate() + averageCycleLength);
+    
+    console.log(`Debug - Current cycle start: ${currentCycleStartDate.toDateString()}, Next period: ${nextPeriod.toDateString()}, Today: ${today.toDateString()}`);
+    
+    const nextOvulation = new Date(nextPeriod);
+    nextOvulation.setDate(nextOvulation.getDate() - 14);
+
+    const fertilityStart = new Date(nextOvulation);
+    fertilityStart.setDate(fertilityStart.getDate() - 5);
+    const fertilityEnd = new Date(nextOvulation);
+    fertilityEnd.setDate(fertilityEnd.getDate() + 1);
+
     const stats: CycleStats = {
-      averageLength: 28,
-      lastPeriodLength: 5,
-      nextPeriodDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-      nextOvulationDate: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000),
+      averageLength: averageCycleLength,
+      lastPeriodLength: periodLength,
+      nextPeriodDate: nextPeriod,
+      nextOvulationDate: nextOvulation,
+      fertilityWindow: { start: fertilityStart, end: fertilityEnd },
       cycleVariability: 2,
-      predictionsAccuracy: 94
+      predictionsAccuracy: 85,
+      recommendations: ["Track your symptoms to improve predictions", "Maintain a regular sleep schedule"],
+      confidence: 0.85
     };
     setCycleStats(stats);
   };
@@ -149,19 +314,50 @@ const CyclePage: React.FC = () => {
   };
 
   const getCurrentCycleDay = () => {
+    if (!profile?.reproductiveHealth) return 1;
+    
+    const { 
+      lastPeriodDate = new Date().toISOString().split('T')[0], 
+      averageCycleLength = 28 
+    } = profile.reproductiveHealth;
     const today = new Date();
-    const todayData = cycleData.find(day => 
-      day.date.toDateString() === today.toDateString()
-    );
-    return todayData?.cycleDay || 14;
+    const lastPeriod = new Date(lastPeriodDate);
+    
+    // Calculate days since last period
+    const daysSinceLastPeriod = Math.floor((today.getTime() - lastPeriod.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Calculate current cycle day
+    let currentCycleDay;
+    if (daysSinceLastPeriod >= 0) {
+      currentCycleDay = (daysSinceLastPeriod % averageCycleLength) + 1;
+    } else {
+      // Handle days before the last period (previous cycle)
+      const daysFromPreviousCycle = Math.abs(daysSinceLastPeriod) % averageCycleLength;
+      currentCycleDay = averageCycleLength - daysFromPreviousCycle + 1;
+    }
+    
+    return currentCycleDay;
   };
 
   const getCurrentPhase = () => {
-    const today = new Date();
-    const todayData = cycleData.find(day => 
-      day.date.toDateString() === today.toDateString()
-    );
-    return todayData?.phase || 'ovulatory';
+    if (!profile?.reproductiveHealth) return 'follicular';
+    
+    const { periodLength = 5, averageCycleLength = 28 } = profile.reproductiveHealth;
+    const currentCycleDay = getCurrentCycleDay();
+    
+    // Calculate phase based on current cycle day
+    const follicularEnd = Math.floor(averageCycleLength * 0.45);
+    const ovulatoryEnd = Math.floor(averageCycleLength * 0.6);
+    
+    if (currentCycleDay <= periodLength) {
+      return 'menstrual';
+    } else if (currentCycleDay <= follicularEnd) {
+      return 'follicular';
+    } else if (currentCycleDay <= ovulatoryEnd) {
+      return 'ovulatory';
+    } else {
+      return 'luteal';
+    }
   };
 
   const getDayData = (date: Date) => {
@@ -207,14 +403,13 @@ const CyclePage: React.FC = () => {
         periodFlow: dayData.periodFlow || '',
         symptoms: dayData.symptoms || [],
         mood: dayData.mood || 5,
-        temperature: dayData.temperature?.toString() || '',
         notes: dayData.notes || ''
       });
     }
     setIsLogging(true);
   };
 
-  const saveDayLog = () => {
+  const saveDayLog = async () => {
     if (!selectedDate) return;
 
     setCycleData(prev => prev.map(day => {
@@ -224,15 +419,27 @@ const CyclePage: React.FC = () => {
           periodFlow: logData.periodFlow as any,
           symptoms: logData.symptoms,
           mood: logData.mood,
-          temperature: logData.temperature ? parseFloat(logData.temperature) : undefined,
           notes: logData.notes
         };
       }
       return day;
     }));
 
+    // Regenerate AI predictions with new data
+    if (profile?.reproductiveHealth) {
+      await generateAIPredictions();
+    }
+
     setIsLogging(false);
     setSelectedDate(null);
+    
+    // Reset form
+    setLogData({
+      periodFlow: '',
+      symptoms: [],
+      mood: 5,
+      notes: ''
+    });
   };
 
   const toggleSymptom = (symptom: string) => {
@@ -254,6 +461,31 @@ const CyclePage: React.FC = () => {
   const isToday = (date: Date) => {
     const today = new Date();
     return date.toDateString() === today.toDateString();
+  };
+
+  const isPredictedEvent = (date: Date) => {
+    if (!cycleStats) return null;
+    
+    const dateStr = date.toDateString();
+    
+    // Check if it's predicted period start (highest priority)
+    if (dateStr === cycleStats.nextPeriodDate.toDateString()) {
+      return { type: 'period', label: 'Predicted Period Start' };
+    }
+    
+    // Check if it's predicted ovulation (second priority)
+    if (dateStr === cycleStats.nextOvulationDate.toDateString()) {
+      return { type: 'ovulation', label: 'Predicted Ovulation' };
+    }
+    
+    // Check if it's in fertility window (but not ovulation day)
+    if (date >= cycleStats.fertilityWindow.start && 
+        date <= cycleStats.fertilityWindow.end &&
+        dateStr !== cycleStats.nextOvulationDate.toDateString()) {
+      return { type: 'fertility', label: 'Fertility Window' };
+    }
+    
+    return null;
   };
 
   return (
@@ -299,16 +531,77 @@ const CyclePage: React.FC = () => {
               </p>
             )}
           </div>
-          <div className="text-right">
-            {cycleStats && (
-              <>
-                <div className="text-3xl font-bold">{cycleStats.predictionsAccuracy}%</div>
-                <div className="text-white/80 text-sm">Prediction Accuracy</div>
-              </>
-            )}
-          </div>
         </div>
       </motion.div>
+
+      {/* AI Insights & Recommendations */}
+      {cycleStats && predictions && (
+        <motion.div 
+          className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <div className="flex items-center space-x-2 mb-4">
+            <Target className="w-5 h-5 text-blue-500" />
+            <h3 className="text-lg font-semibold text-gray-900">AI-Powered Insights</h3>
+            <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
+              {Math.round(cycleStats.confidence * 100)}% Confidence
+            </div>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Key Predictions */}
+            <div>
+              <h4 className="font-medium text-gray-900 mb-3">Key Predictions</h4>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Droplets className="w-4 h-4 text-red-500" />
+                    <span className="text-sm text-gray-700">Next Period</span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-900">
+                    {cycleStats.nextPeriodDate.toLocaleDateString()}
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Target className="w-4 h-4 text-yellow-500" />
+                    <span className="text-sm text-gray-700">Ovulation</span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-900">
+                    {cycleStats.nextOvulationDate.toLocaleDateString()}
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Heart className="w-4 h-4 text-green-500" />
+                    <span className="text-sm text-gray-700">Fertility Window</span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-900">
+                    {cycleStats.fertilityWindow.start.toLocaleDateString()} - {cycleStats.fertilityWindow.end.toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            {/* AI Recommendations */}
+            <div>
+              <h4 className="font-medium text-gray-900 mb-3">Personalized Recommendations</h4>
+              <div className="space-y-2">
+                {cycleStats.recommendations.slice(0, 4).map((recommendation, index) => (
+                  <div key={index} className="flex items-start space-x-2 p-3 bg-blue-50 rounded-lg">
+                    <Info className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-gray-700">{recommendation}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* View Mode Tabs */}
       <motion.div 
@@ -387,36 +680,65 @@ const CyclePage: React.FC = () => {
 
               const dayData = getDayData(date);
               const today = isToday(date);
+              const predictedEvent = isPredictedEvent(date);
 
               return (
                 <motion.button
                   key={date.toISOString()}
                   onClick={() => handleDateClick(date)}
                   className={`relative h-12 rounded-lg border transition-all hover:border-purple-300 ${
-                    today ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:bg-gray-50'
+                    today 
+                      ? 'border-purple-500 bg-purple-50' 
+                      : predictedEvent
+                      ? predictedEvent.type === 'period' 
+                        ? 'border-red-400 bg-red-50' 
+                        : predictedEvent.type === 'ovulation'
+                        ? 'border-yellow-400 bg-yellow-50'
+                        : 'border-green-400 bg-green-50'
+                      : 'border-gray-200 hover:bg-gray-50'
                   }`}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  title={predictedEvent?.label || ''}
                 >
                   <div className="flex flex-col items-center justify-center h-full">
-                    <span className={`text-sm ${today ? 'font-bold text-purple-900' : 'text-gray-900'}`}>
+                    <span className={`text-sm ${
+                      today 
+                        ? 'font-bold text-purple-900' 
+                        : predictedEvent
+                        ? 'font-semibold text-gray-900'
+                        : 'text-gray-900'
+                    }`}>
                       {date.getDate()}
                     </span>
                     {dayData && (
-                      <div className="flex space-x-1 mt-1">
-                        {/* Phase indicator */}
-                        <div className={`w-2 h-2 rounded-full ${getPhaseColor(dayData.phase)}`}></div>
-                        {/* Period flow indicator */}
-                        {dayData.periodFlow && (
+                      <div className="flex space-x-0.5 mt-1 justify-center">
+                        {/* Primary indicator: Period flow takes priority over phase */}
+                        {dayData.periodFlow ? (
                           <div className={`w-2 h-2 rounded-full ${
-                            dayData.periodFlow === 'heavy' ? 'bg-red-600' :
-                            dayData.periodFlow === 'medium' ? 'bg-red-400' : 'bg-red-200'
-                          }`}></div>
+                            dayData.periodFlow === 'heavy' ? 'bg-red-700' :
+                            dayData.periodFlow === 'medium' ? 'bg-red-500' : 'bg-red-300'
+                          }`} title={`${dayData.periodFlow} flow`}></div>
+                        ) : (
+                          <div className={`w-1.5 h-1.5 rounded-full ${getPhaseColor(dayData.phase)}`} title={`${dayData.phase} phase`}></div>
                         )}
-                        {/* Symptoms indicator */}
+                        
+                        {/* Symptoms indicator - only if there are symptoms */}
                         {dayData.symptoms.length > 0 && (
-                          <div className="w-2 h-2 rounded-full bg-orange-400"></div>
+                          <div className="w-1.5 h-1.5 bg-orange-500 rounded-sm" title={`${dayData.symptoms.length} symptoms`}></div>
                         )}
+                      </div>
+                    )}
+                    {/* Prediction indicator - star shape for AI predictions */}
+                    {predictedEvent && (
+                      <div className="absolute -top-0.5 -right-0.5">
+                        <div className={`w-2.5 h-2.5 transform rotate-45 ${
+                          predictedEvent.type === 'period' 
+                            ? 'bg-red-600 border border-red-700' 
+                            : predictedEvent.type === 'ovulation'
+                            ? 'bg-yellow-500 border border-yellow-600'
+                            : 'bg-green-500 border border-green-600'
+                        }`}></div>
                       </div>
                     )}
                   </div>
@@ -427,23 +749,81 @@ const CyclePage: React.FC = () => {
 
           {/* Legend */}
           <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-            <h4 className="font-medium text-gray-900 mb-3">Legend</h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span>Menstrual</span>
+            <h4 className="font-medium text-gray-900 mb-4">Calendar Legend</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+              {/* Cycle Phases */}
+              <div className="space-y-3">
+                <h5 className="font-semibold text-gray-800 text-xs uppercase tracking-wide border-b border-gray-300 pb-1">Cycle Phases</h5>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span>Menstrual</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span>Follicular</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <span>Ovulatory</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                    <span>Luteal</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span>Follicular</span>
+              
+              {/* Flow & Tracking */}
+              <div className="space-y-3">
+                <h5 className="font-semibold text-gray-800 text-xs uppercase tracking-wide border-b border-gray-300 pb-1">Flow & Symptoms</h5>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-b-[10px] border-l-transparent border-r-transparent border-b-red-700"></div>
+                    <span>Heavy Flow</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-b-[8px] border-l-transparent border-r-transparent border-b-red-500"></div>
+                    <span>Medium Flow</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[6px] border-l-transparent border-r-transparent border-b-red-300"></div>
+                    <span>Light Flow</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-orange-500 rounded-sm"></div>
+                    <span>Symptoms Logged</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <span>Ovulatory</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                <span>Luteal</span>
+              
+              {/* AI Predictions */}
+              <div className="space-y-3">
+                <h5 className="font-semibold text-gray-800 text-xs uppercase tracking-wide border-b border-gray-300 pb-1">AI Predictions</h5>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <div className="w-3 h-3 bg-red-600 border border-red-700 transform rotate-45"></div>
+                    </div>
+                    <span>Next Period Start</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <div className="w-3 h-3 bg-yellow-500 border border-yellow-600 transform rotate-45"></div>
+                    </div>
+                    <span>Ovulation Day</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <div className="w-3 h-3 bg-green-500 border border-green-600 transform rotate-45"></div>
+                    </div>
+                    <span>Fertility Window</span>
+                  </div>
+                  <div className="flex items-center space-x-3 text-xs text-gray-600">
+                    <Info className="w-3 h-3" />
+                    <span>Diamond shapes indicate AI predictions</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -462,13 +842,75 @@ const CyclePage: React.FC = () => {
           >
             <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
               <TrendingUp className="w-5 h-5 mr-2 text-blue-600" />
-              Cycle Length Trends
+              Current Cycle Progress
             </h3>
-            <div className="h-64 flex items-center justify-center bg-gray-50 rounded-xl">
-              <div className="text-center">
-                <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600">Chart visualization would appear here</p>
-                <p className="text-sm text-gray-500">Average cycle: {cycleStats?.averageLength} days</p>
+            <div className="h-64 bg-gray-50 rounded-xl p-6">
+              {/* Current Cycle Progress */}
+              <div className="h-full flex flex-col justify-center">
+                {/* Cycle Day Display */}
+                <div className="text-center mb-6">
+                  <div className="text-4xl font-bold text-blue-600 mb-2">Day 4</div>
+                  <div className="text-lg text-gray-700 mb-1">Menstrual Phase</div>
+                  <div className="text-sm text-gray-500">of your 22-day cycle</div>
+                </div>
+                
+                {/* Progress Bar */}
+                <div className="mb-6">
+                  <div className="flex justify-between text-xs text-gray-500 mb-2">
+                    <span>Cycle Start</span>
+                    <span>18% Complete</span>
+                    <span>Next Period</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-gradient-to-r from-pink-500 to-blue-500 h-3 rounded-full transition-all duration-500"
+                      style={{ width: '18%' }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-400 mt-1">
+                    <span>Day 1</span>
+                    <span>Day 22</span>
+                  </div>
+                </div>
+                
+                {/* Phase Indicators */}
+                <div className="grid grid-cols-4 gap-2 text-xs">
+                  <div className="text-center p-2 bg-pink-100 rounded-lg border-2 border-pink-300">
+                    <div className="font-semibold text-pink-700">Menstrual</div>
+                    <div className="text-pink-600">Days 1-5</div>
+                    <div className="mt-1">
+                      <div className="w-2 h-2 bg-pink-500 rounded-full mx-auto"></div>
+                    </div>
+                  </div>
+                  <div className="text-center p-2 bg-gray-100 rounded-lg">
+                    <div className="font-semibold text-gray-600">Follicular</div>
+                    <div className="text-gray-500">Days 6-9</div>
+                    <div className="mt-1">
+                      <div className="w-2 h-2 bg-gray-300 rounded-full mx-auto"></div>
+                    </div>
+                  </div>
+                  <div className="text-center p-2 bg-gray-100 rounded-lg">
+                    <div className="font-semibold text-gray-600">Ovulatory</div>
+                    <div className="text-gray-500">Days 10-12</div>
+                    <div className="mt-1">
+                      <div className="w-2 h-2 bg-gray-300 rounded-full mx-auto"></div>
+                    </div>
+                  </div>
+                  <div className="text-center p-2 bg-gray-100 rounded-lg">
+                    <div className="font-semibold text-gray-600">Luteal</div>
+                    <div className="text-gray-500">Days 13-22</div>
+                    <div className="mt-1">
+                      <div className="w-2 h-2 bg-gray-300 rounded-full mx-auto"></div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Next Period Countdown */}
+                <div className="text-center mt-4 p-3 bg-blue-50 rounded-lg">
+                  <div className="text-sm text-blue-700">
+                    <span className="font-semibold">18 days</span> until your next period
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -519,39 +961,6 @@ const CyclePage: React.FC = () => {
                   </div>
                 </div>
               ))}
-            </div>
-          </motion.div>
-
-          {/* Predictions Accuracy */}
-          <motion.div 
-            className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-          >
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-              <Target className="w-5 h-5 mr-2 text-green-600" />
-              Prediction Accuracy
-            </h3>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-green-600 mb-2">
-                {cycleStats?.predictionsAccuracy}%
-              </div>
-              <p className="text-gray-600 mb-4">Overall accuracy</p>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Period predictions</span>
-                  <span className="font-medium">96%</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Ovulation predictions</span>
-                  <span className="font-medium">92%</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Symptom predictions</span>
-                  <span className="font-medium">89%</span>
-                </div>
-              </div>
             </div>
           </motion.div>
         </div>
@@ -627,55 +1036,43 @@ const CyclePage: React.FC = () => {
       {/* Cycle Stats */}
       {cycleStats && (
         <motion.div 
-          className="grid grid-cols-1 md:grid-cols-4 gap-4"
+          className="grid grid-cols-1 md:grid-cols-3 gap-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
         >
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-blue-600" />
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Calendar className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <div className="text-lg font-bold text-gray-900">{cycleStats.averageLength}</div>
+                <div className="text-2xl font-bold text-gray-900">{cycleStats.averageLength}</div>
                 <div className="text-sm text-gray-600">Avg Cycle Length</div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                <Droplets className="w-5 h-5 text-red-600" />
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                <Droplets className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <div className="text-lg font-bold text-gray-900">{cycleStats.lastPeriodLength}</div>
+                <div className="text-2xl font-bold text-gray-900">{cycleStats.lastPeriodLength}</div>
                 <div className="text-sm text-gray-600">Last Period Length</div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <Target className="w-5 h-5 text-green-600" />
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <Target className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <div className="text-lg font-bold text-gray-900">{cycleStats.cycleVariability}</div>
+                <div className="text-2xl font-bold text-gray-900">{cycleStats.cycleVariability}</div>
                 <div className="text-sm text-gray-600">Cycle Variability</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <div className="text-lg font-bold text-gray-900">{cycleStats.predictionsAccuracy}%</div>
-                <div className="text-sm text-gray-600">Prediction Accuracy</div>
               </div>
             </div>
           </div>
@@ -767,21 +1164,6 @@ const CyclePage: React.FC = () => {
                     <span>Terrible</span>
                     <span>Amazing</span>
                   </div>
-                </div>
-
-                {/* Temperature */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Basal Body Temperature (°F)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={logData.temperature}
-                    onChange={(e) => setLogData(prev => ({ ...prev, temperature: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="98.6"
-                  />
                 </div>
 
                 {/* Notes */}

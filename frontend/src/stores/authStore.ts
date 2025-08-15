@@ -7,12 +7,22 @@ export interface UserProfile {
   firstName?: string;
   lastName?: string;
   age?: number;
+  height?: number; // in cm
+  weight?: number; // in kg
   reproductiveStage?: 'puberty' | 'sexually-active' | 'trying-to-conceive' | 'pregnant' | 'postpartum' | 'breastfeeding' | 'premenopausal' | 'menopausal' | 'postmenopausal';
+  reproductiveHealth?: {
+    lastPeriodDate?: string;
+    averageCycleLength?: number;
+    periodLength?: number;
+  };
   healthGoals?: ('maintaining-health' | 'achieving-conception' | 'preventing-pregnancy' | 'managing-symptoms' | 'tracking-fertility' | 'hormone-balance' | 'weight-management' | 'mental-health' | 'sexual-wellness')[];
   onboardingCompleted?: boolean;
   race?: string;
   location?: string;
   medicalConditions?: string[];
+  medications?: string[];
+  allergies?: string[];
+  surgeries?: string[];
   lifestyle?: {
     exerciseFrequency?: string;
     sleepHours?: number;
@@ -174,6 +184,7 @@ const useAuthStore = create<AuthStore>()(
           });
 
           console.log('Profile updated successfully:', updatedProfile);
+          console.log('Updates received:', updates);
         } catch (error: any) {
           set({
             isLoading: false,
