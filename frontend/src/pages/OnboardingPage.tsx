@@ -209,6 +209,8 @@ const OnboardingPage: React.FC = () => {
     try {
       // Debug: log the form data before saving
       console.log('Form data before saving:', formData);
+      console.log('Weight form data:', formData.personalInfo.weight);
+      console.log('Weight parsed:', formData.personalInfo.weight ? parseInt(formData.personalInfo.weight, 10) : undefined);
       
       // Update profile with all onboarding data
       await updateProfile({
@@ -221,6 +223,11 @@ const OnboardingPage: React.FC = () => {
         race: formData.personalInfo.race,
         location: formData.personalInfo.location,
         reproductiveStage: formData.reproductiveHealth.stage as any,
+        reproductiveHealth: {
+          lastPeriodDate: formData.reproductiveHealth.lastPeriodDate,
+          averageCycleLength: formData.reproductiveHealth.averageCycleLength,
+          periodLength: formData.reproductiveHealth.periodLength
+        },
         healthGoals: formData.healthGoals as any,
         medicalConditions: formData.medicalHistory.conditions,
         lifestyle: {

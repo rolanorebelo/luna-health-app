@@ -27,6 +27,9 @@ import {
 } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
 import useHealthStore from '../stores/healthStore';
+import useReminderStore from '../stores/reminderStore';
+import ReminderForm from '../components/health/ReminderForm';
+import { llmHealthService, CycleInsight } from '../services/llmHealthService';
 
 interface HealthMetric {
   id: string;
@@ -47,18 +50,140 @@ interface Insight {
   actionUrl?: string;
 }
 
-interface Reminder {
-  id: string;
-  type: 'period' | 'ovulation' | 'appointment' | 'medication';
-  title: string;
-  time: string;
-  urgent: boolean;
-}
-
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { profile } = useAuthStore();
   const { loadCurrentCycle, loadInsights, loadPredictions } = useHealthStore();
+  const { reminders, getUpcomingReminders, generateCycleReminders } = useReminderStore();
+  const [showReminderForm, setShowReminderForm] = React.useState(false);
+  const [aiInsight, setAiInsight] = React.useState<CycleInsight | null>(null);
+  const [loadingInsight, setLoadingInsight] = React.useState(false);
+
+  // Calculate current cycle day
+  const getCurrentCycleDay = (): number => {
+    if (!profile?.reproductiveHealth) return 1;
+    
+    const { 
+      lastPeriodDate = new Date().toISOString().split('T')[0], 
+      averageCycleLength = 28 
+    } = profile.reproductiveHealth;
+    const today = new Date();
+    const lastPeriod = new Date(lastPeriodDate);
+    
+    // Calculate days since last period
+    const daysSinceLastPeriod = Math.floor((today.getTime() - lastPeriod.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Calculate current cycle day
+    let currentCycleDay;
+    if (daysSinceLastPeriod >= 0) {
+      currentCycleDay = (daysSinceLastPeriod % averageCycleLength) + 1;
+    } else {
+      // Handle days before the last period (previous cycle)
+      const daysFromPreviousCycle = Math.abs(daysSinceLastPeriod) % averageCycleLength;
+      currentCycleDay = averageCycleLength - daysFromPreviousCycle + 1;
+    }
+    
+    return currentCycleDay;
+  };
+
+  // Calculate current phase
+  const getCurrentPhase = (): { phase: string; description: string; progress: number } => {
+    if (!profile?.reproductiveHealth) {
+      return { phase: 'Menstrual Phase', description: 'Period days', progress: 0 };
+    }
+    
+    const { 
+      periodLength = 5, 
+      averageCycleLength = 28 
+    } = profile.reproductiveHealth;
+    
+    const currentDay = getCurrentCycleDay();
+    
+    // Dynamic phase calculations
+    const follicularEnd = Math.floor(averageCycleLength * 0.5) - 2; // Around day 12 for 28-day cycle, day 9 for 22-day
+    const ovulatoryStart = follicularEnd + 1;
+    const ovulatoryEnd = ovulatoryStart + 2; // 2-day ovulation window
+    const lutealStart = ovulatoryEnd + 1;
+    
+    if (currentDay <= periodLength) {
+      return { 
+        phase: 'Menstrual Phase', 
+        description: 'Period days - time for rest and self-care',
+        progress: (currentDay / averageCycleLength) * 100
+      };
+    } else if (currentDay <= follicularEnd) {
+      return { 
+        phase: 'Follicular Phase', 
+        description: 'Energy building - great time for new activities',
+        progress: (currentDay / averageCycleLength) * 100
+      };
+    } else if (currentDay <= ovulatoryEnd) {
+      return { 
+        phase: 'Ovulatory Phase', 
+        description: 'Peak fertility - optimal for conception',
+        progress: (currentDay / averageCycleLength) * 100
+      };
+    } else {
+      return { 
+        phase: 'Luteal Phase', 
+        description: 'Energy may dip - focus on self-care',
+        progress: (currentDay / averageCycleLength) * 100
+      };
+    }
+  };
+
+  const currentCycleDay = getCurrentCycleDay();
+  const currentPhaseInfo = getCurrentPhase();
+
+  // Generate cycle reminders when profile data is available
+  useEffect(() => {
+    console.log('🔍 HomePage useEffect for reminders triggered');
+    console.log('🔍 Profile reproductive health:', profile?.reproductiveHealth);
+    
+    if (profile?.reproductiveHealth) {
+      const { lastPeriodDate, averageCycleLength = 28, periodLength = 5 } = profile.reproductiveHealth;
+      console.log('🔍 Generating reminders with:', { lastPeriodDate, averageCycleLength, periodLength });
+      
+      if (lastPeriodDate) {
+        generateCycleReminders(lastPeriodDate, averageCycleLength, periodLength);
+        console.log('🔍 Reminders generated');
+      } else {
+        console.log('🔍 No lastPeriodDate found');
+      }
+    } else {
+      console.log('🔍 No reproductive health data found');
+    }
+  }, [profile?.reproductiveHealth, generateCycleReminders]);
+
+  // Get upcoming reminders for display
+  const upcomingReminders = getUpcomingReminders();
+
+  // Generate AI insight based on cycle data
+  useEffect(() => {
+    const generateAIInsight = async () => {
+      if (!profile?.reproductiveHealth) return;
+
+      setLoadingInsight(true);
+      try {
+        const insight = await llmHealthService.generateCycleInsight({
+          current_cycle_day: currentCycleDay,
+          cycle_length: profile.reproductiveHealth.averageCycleLength || 28,
+          period_length: profile.reproductiveHealth.periodLength || 5,
+          last_period_date: profile.reproductiveHealth.lastPeriodDate || new Date().toISOString().split('T')[0],
+          health_goals: profile.healthGoals,
+          reproductive_stage: profile.reproductiveStage
+        });
+        setAiInsight(insight);
+      } catch (error) {
+        console.error('Failed to generate AI insight:', error);
+      } finally {
+        setLoadingInsight(false);
+      }
+    };
+
+    generateAIInsight();
+  }, [profile, currentCycleDay]);
+  console.log('🔍 Upcoming reminders:', upcomingReminders);
 
   // Mock data - in real app this would come from your stores/API
   const [healthMetrics] = React.useState<HealthMetric[]>([
@@ -74,7 +199,7 @@ const HomePage: React.FC = () => {
     {
       id: 'cycle',
       name: 'Cycle Day',
-      value: 14,
+      value: currentCycleDay,
       unit: '',
       trend: 'stable',
       color: 'from-pink-500 to-rose-500',
@@ -101,6 +226,7 @@ const HomePage: React.FC = () => {
   ]);
 
   const [insights] = React.useState<Insight[]>([
+    // This will be replaced with AI-generated insight
     {
       id: '1',
       type: 'success',
@@ -127,29 +253,23 @@ const HomePage: React.FC = () => {
     }
   ]);
 
-  const [reminders] = React.useState<Reminder[]>([
-    {
-      id: '1',
-      type: 'period',
-      title: 'Period starting soon',
-      time: 'In 3 days',
-      urgent: false
-    },
-    {
-      id: '2',
-      type: 'ovulation',
-      title: 'Peak fertility today',
-      time: 'Now',
-      urgent: true
-    },
-    {
-      id: '3',
-      type: 'appointment',
-      title: 'Gynecologist appointment',
-      time: 'Tomorrow 2:00 PM',
-      urgent: false
+  // Create dynamic insights with AI-generated first insight
+  const dynamicInsights = React.useMemo(() => {
+    const baseInsights = [...insights];
+    
+    if (aiInsight && !loadingInsight) {
+      baseInsights[0] = {
+        id: '1',
+        type: aiInsight.type,
+        title: aiInsight.title,
+        description: aiInsight.description,
+        action: aiInsight.action,
+        actionUrl: '/cycle'
+      };
     }
-  ]);
+    
+    return baseInsights;
+  }, [insights, aiInsight, loadingInsight]);
 
   useEffect(() => {
     // Load health data when component mounts
@@ -205,9 +325,9 @@ const HomePage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold mb-1">Day 14</h2>
-            <p className="text-white/80 text-lg">Ovulatory Phase</p>
-            <p className="text-white/70 text-sm mt-2">Peak fertility - optimal for conception</p>
+            <h2 className="text-2xl font-bold mb-1">Day {currentCycleDay}</h2>
+            <p className="text-white/80 text-lg">{currentPhaseInfo.phase}</p>
+            <p className="text-white/70 text-sm mt-2">{currentPhaseInfo.description}</p>
           </div>
           <div className="text-right">
             <div className="text-3xl font-bold">85%</div>
@@ -226,7 +346,7 @@ const HomePage: React.FC = () => {
             <motion.div 
               className="h-3 bg-white rounded-full transition-all duration-500"
               initial={{ width: 0 }}
-              animate={{ width: '50%' }}
+              animate={{ width: `${currentPhaseInfo.progress}%` }}
               transition={{ delay: 0.5, duration: 0.8 }}
             />
           </div>
@@ -289,7 +409,7 @@ const HomePage: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            {insights.map((insight, index) => (
+            {dynamicInsights.map((insight, index) => (
               <motion.div
                 key={insight.id}
                 className={`p-4 rounded-xl border-l-4 ${
@@ -329,6 +449,23 @@ const HomePage: React.FC = () => {
                 </div>
               </motion.div>
             ))}
+            {loadingInsight && (
+              <motion.div
+                className="p-4 rounded-xl border-l-4 bg-gray-50 border-gray-300"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+              >
+                <div className="flex items-start space-x-3">
+                  <div className="p-1 rounded-full bg-gray-100">
+                    <Sparkles className="w-4 h-4 text-gray-600 animate-pulse" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900 mb-1">Generating Personalized Insight...</h4>
+                    <p className="text-sm text-gray-600 mb-2">Our AI is analyzing your cycle data to provide tailored recommendations.</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </div>
         </motion.div>
 
@@ -344,41 +481,76 @@ const HomePage: React.FC = () => {
               <Bell className="w-5 h-5 mr-2 text-orange-600" />
               Reminders
             </h3>
-            <button className="p-2 text-purple-600 hover:text-purple-700">
+            <button 
+              onClick={() => setShowReminderForm(true)}
+              className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
+            >
               <Plus className="w-4 h-4" />
             </button>
           </div>
 
           <div className="space-y-3">
-            {reminders.map((reminder, index) => (
-              <motion.div
-                key={reminder.id}
-                className={`p-4 rounded-xl ${
-                  reminder.urgent ? 'bg-red-50 border border-red-200' : 'bg-gray-50'
-                }`}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 * index }}
-              >
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg ${
-                    reminder.type === 'period' ? 'bg-red-100' :
-                    reminder.type === 'ovulation' ? 'bg-yellow-100' :
-                    reminder.type === 'appointment' ? 'bg-blue-100' :
-                    'bg-green-100'
-                  }`}>
-                    {reminder.type === 'period' && <Calendar className="w-4 h-4 text-red-600" />}
-                    {reminder.type === 'ovulation' && <Target className="w-4 h-4 text-yellow-600" />}
-                    {reminder.type === 'appointment' && <Clock className="w-4 h-4 text-blue-600" />}
-                    {reminder.type === 'medication' && <Zap className="w-4 h-4 text-green-600" />}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900">{reminder.title}</div>
-                    <div className="text-sm text-gray-600">{reminder.time}</div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+            {upcomingReminders.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Bell className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                <p>No upcoming reminders</p>
+                <button 
+                  onClick={() => setShowReminderForm(true)}
+                  className="text-purple-600 hover:text-purple-700 text-sm mt-1"
+                >
+                  Add your first reminder
+                </button>
+              </div>
+            ) : (
+              upcomingReminders.map((reminder, index) => {
+                const reminderDate = new Date(reminder.date);
+                const today = new Date();
+                const tomorrow = new Date();
+                tomorrow.setDate(today.getDate() + 1);
+                
+                let timeDisplay = '';
+                if (reminder.date === today.toISOString().split('T')[0]) {
+                  timeDisplay = reminder.time ? `Today ${reminder.time}` : 'Today';
+                } else if (reminder.date === tomorrow.toISOString().split('T')[0]) {
+                  timeDisplay = reminder.time ? `Tomorrow ${reminder.time}` : 'Tomorrow';
+                } else {
+                  const daysFromNow = Math.ceil((reminderDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                  timeDisplay = reminder.description || `In ${daysFromNow} day${daysFromNow > 1 ? 's' : ''}`;
+                }
+
+                return (
+                  <motion.div
+                    key={reminder.id}
+                    className={`p-4 rounded-xl ${
+                      reminder.urgent ? 'bg-red-50 border border-red-200' : 'bg-gray-50'
+                    }`}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 * index }}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className={`p-2 rounded-lg ${
+                        reminder.type === 'period' ? 'bg-red-100' :
+                        reminder.type === 'ovulation' ? 'bg-yellow-100' :
+                        reminder.type === 'appointment' ? 'bg-blue-100' :
+                        reminder.type === 'medication' ? 'bg-green-100' :
+                        'bg-purple-100'
+                      }`}>
+                        {reminder.type === 'period' && <Calendar className="w-4 h-4 text-red-600" />}
+                        {reminder.type === 'ovulation' && <Target className="w-4 h-4 text-yellow-600" />}
+                        {reminder.type === 'appointment' && <Clock className="w-4 h-4 text-blue-600" />}
+                        {reminder.type === 'medication' && <Zap className="w-4 h-4 text-green-600" />}
+                        {reminder.type === 'custom' && <Bell className="w-4 h-4 text-purple-600" />}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{reminder.title}</div>
+                        <div className="text-sm text-gray-600">{timeDisplay}</div>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })
+            )}
           </div>
         </motion.div>
       </div>
@@ -528,6 +700,12 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* Reminder Form Modal */}
+      <ReminderForm 
+        isOpen={showReminderForm} 
+        onClose={() => setShowReminderForm(false)} 
+      />
     </div>
   );
 };

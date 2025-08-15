@@ -10,6 +10,11 @@ export interface UserProfile {
   height?: number; // in cm
   weight?: number; // in kg
   reproductiveStage?: 'puberty' | 'sexually-active' | 'trying-to-conceive' | 'pregnant' | 'postpartum' | 'breastfeeding' | 'premenopausal' | 'menopausal' | 'postmenopausal';
+  reproductiveHealth?: {
+    lastPeriodDate?: string;
+    averageCycleLength?: number;
+    periodLength?: number;
+  };
   healthGoals?: ('maintaining-health' | 'achieving-conception' | 'preventing-pregnancy' | 'managing-symptoms' | 'tracking-fertility' | 'hormone-balance' | 'weight-management' | 'mental-health' | 'sexual-wellness')[];
   onboardingCompleted?: boolean;
   race?: string;

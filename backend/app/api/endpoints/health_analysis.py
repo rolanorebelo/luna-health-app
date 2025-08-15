@@ -280,3 +280,41 @@ async def hemoglobin_service_status():
             "error": str(e),
             "service": "Nail Hemoglobin Analysis"
         }
+
+@router.post("/generate-cycle-insight")
+async def generate_cycle_insight(
+    current_cycle_day: int,
+    cycle_length: int,
+    period_length: int,
+    last_period_date: str,
+    health_goals: Optional[List[str]] = None,
+    reproductive_stage: Optional[str] = None
+):
+    """
+    Generate personalized cycle insight using LLM
+    """
+    try:
+        insight = await llm_service.generate_cycle_insight(
+            current_cycle_day=current_cycle_day,
+            cycle_length=cycle_length,
+            period_length=period_length,
+            last_period_date=last_period_date,
+            health_goals=health_goals,
+            reproductive_stage=reproductive_stage
+        )
+        
+        return {
+            "status": "success",
+            "insight": insight
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "insight": {
+                "title": "Cycle Update",
+                "description": "Stay in tune with your cycle and listen to your body's needs.",
+                "type": "info",
+                "action": "Track Cycle"
+            }
+        }

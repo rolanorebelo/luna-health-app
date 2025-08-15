@@ -36,6 +36,11 @@ const ProfilePage: React.FC = () => {
   const [editing, setEditing] = useState<EditingState>({ section: null, data: {} });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // Debug: Check what's actually stored in the profile
+  console.log('🔍 Profile data:', profile);
+  console.log('🔍 Profile weight:', profile?.weight);
+  console.log('🔍 Profile weight type:', typeof profile?.weight);
+
   const reproductiveStages = [
     { id: 'puberty', label: 'Puberty (9-16 years)' },
     { id: 'sexually-active', label: 'Sexually Active' },
