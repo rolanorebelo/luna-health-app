@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, Send, Camera, Sparkles, RefreshCw, Heart, Brain, Baby, Stethoscope, Moon, Apple, Shield } from 'lucide-react';
+import { Send, Camera, Sparkles, RefreshCw, Heart, Brain, Baby, Stethoscope, Apple, Shield } from 'lucide-react';
 
 interface ChatMessage {
   id: string;
@@ -112,47 +112,13 @@ const ChatPage: React.FC = () => {
       };
       setMessages([welcomeMessage]);
     }
-  }, [userContext.cycleDay, userContext.phase]);
+  }, [userContext.cycleDay, userContext.phase, messages.length]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const sendMessageToRAG = async (message: string): Promise<ChatMessage> => {
-    try {
-      const response = await fetch('/api/v1/chat/send-message', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: message,
-          user_context: userContext
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get response from chat service');
-      }
-
-      const data = await response.json();
-      
-      return {
-        id: `ai-${Date.now()}`,
-        type: 'ai',
-        content: data.response,
-        timestamp: new Date(data.timestamp),
-        category: data.category,
-        quickActions: data.quick_actions
-      };
-    } catch (error) {
-      console.error('Chat service error:', error);
-      // Fallback to enhanced local responses
-      return generateFallbackResponse(message);
-    }
-  };
-
-  const generateFallbackResponse = (userMessage: string): ChatMessage => {
+  const generateFallbackResponse = useCallback((userMessage: string): ChatMessage => {
     // Enhanced fallback responses with better medical accuracy and empathy
     const lowerMessage = userMessage.toLowerCase();
     
@@ -190,9 +156,43 @@ const ChatPage: React.FC = () => {
       category,
       quickActions
     };
-  };
+  }, [userContext]);
 
-  const handleSendMessage = async () => {
+  const sendMessageToRAG = useCallback(async (message: string): Promise<ChatMessage> => {
+    try {
+      const response = await fetch('/api/v1/chat/send-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: message,
+          user_context: userContext
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response from chat service');
+      }
+
+      const data = await response.json();
+      
+      return {
+        id: `ai-${Date.now()}`,
+        type: 'ai',
+        content: data.response,
+        timestamp: new Date(data.timestamp),
+        category: data.category,
+        quickActions: data.quick_actions
+      };
+    } catch (error) {
+      console.error('Chat service error:', error);
+      // Fallback to enhanced local responses
+      return generateFallbackResponse(message);
+    }
+  }, [userContext, generateFallbackResponse]);
+
+  const handleSendMessage = useCallback(async () => {
     if (!inputValue.trim()) return;
 
     const userMessage: ChatMessage = {
@@ -216,18 +216,18 @@ const ChatPage: React.FC = () => {
     } finally {
       setIsTyping(false);
     }
-  };
+  }, [inputValue, sendMessageToRAG]);
 
-  const handleQuickAction = (action: string) => {
+  const handleQuickAction = useCallback((action: string) => {
     setInputValue(action);
-  };
+  }, []);
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
-  };
+  }, [handleSendMessage]);
 
   const currentSuggestions = selectedCategory 
     ? smartSuggestions.find(s => s.category === selectedCategory)?.questions || []
