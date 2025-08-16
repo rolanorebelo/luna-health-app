@@ -140,7 +140,7 @@ const Sensor: React.FC<SensorProps> = ({ onStartTest, onViewHistory }) => {
             <Thermometer className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">WIHHMS Smart Sensor</h3>
+            <h3 className="text-xl font-bold text-gray-900">WIHMMScope</h3>
             <p className="text-sm text-gray-600">At-home health testing</p>
           </div>
         </div>

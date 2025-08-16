@@ -77,14 +77,14 @@ const Sidebar: React.FC = () => {
     },
     {
       id: 'gut-balance',
-      label: 'WIHHMS Gut Balance',
+      label: 'WHIMMS Pill',
       icon: <Pill className="w-5 h-5" />,
       path: '/gut-balance',
       color: 'text-purple-600'
     },
     {
       id: 'sensor',
-      label: 'WIHHMS Smart Sensor',
+      label: 'WIHMMScope',
       icon: <Activity className="w-5 h-5" />,
       path: '/sensor',
       color: 'text-blue-600'
@@ -98,7 +98,7 @@ const Sidebar: React.FC = () => {
     },
     {
       id: 'chat',
-      label: 'AI Chat',
+      label: 'WIHMMSy',
       icon: <MessageCircle className="w-5 h-5" />,
       path: '/chat',
       color: 'text-indigo-600'

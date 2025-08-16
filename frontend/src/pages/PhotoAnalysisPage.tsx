@@ -32,7 +32,7 @@ const PhotoAnalysisPage: React.FC = () => {
     },
     {
       id: 'discharge',
-      name: 'Discharge Check',
+      name: 'WiPad Check',
       icon: <Microscope className="w-6 h-6" />,
       description: 'Analyze vaginal discharge color, consistency, and potential concerns',
       color: 'from-blue-500 to-cyan-500'
@@ -60,7 +60,7 @@ const PhotoAnalysisPage: React.FC = () => {
     },
     {
       id: 'patterns',
-      name: 'Pattern Detection',
+      name: 'WiPad Biomarkers',
       icon: <Target className="w-6 h-6" />,
       description: 'Detect and count LC droplet patterns (circular vs cross)',
       color: 'from-orange-500 to-amber-500'

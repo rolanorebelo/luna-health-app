@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, Sparkles } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
-
+import WIHHMSLogo from '../components/ui/WIHHMSLogo';
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login, isLoading, error, clearError } = useAuthStore();
@@ -37,9 +37,9 @@ const LoginPage: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="w-8 h-8 text-white" />
-          </div>
+          <div className="w-17 h-17 flex items-center justify-center">
+        <WIHHMSLogo size="large" />
+            </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back</h1>
           <p className="text-gray-600">Sign in to your WIHHMS account</p>
         </motion.div>

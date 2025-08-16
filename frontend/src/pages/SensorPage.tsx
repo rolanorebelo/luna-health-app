@@ -30,7 +30,7 @@ const SensorComponent: React.FC<SensorComponentProps> = ({ onStartTest, onViewHi
           <Activity className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-gray-900">WIHHMS Smart Sensor</h3>
+          <h3 className="text-xl font-bold text-gray-900">WIHMMScope</h3>
         </div>
       </div>
 
@@ -113,7 +113,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => (
 const SensorPage: React.FC = () => {
   const handleStartTest = () => {
     console.log('Starting sensor test');
-    alert('Initializing WIHHMS Smart Sensor...\nPlease follow the on-screen instructions.');
+    alert('Initializing WIHMMScope...\nPlease follow the on-screen instructions.');
   };
 
   const handleViewHistory = () => {
@@ -132,7 +132,7 @@ const SensorPage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">WIHHMS Smart Sensor</h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">WIHMMScope</h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Advanced at-home health testing technology for comprehensive wellness monitoring
             </p>
@@ -163,7 +163,7 @@ const SensorPage: React.FC = () => {
             <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Why Use Smart Sensor Technology?</h2>
             <div className="space-y-6 text-gray-600">
               <p className="text-lg text-center">
-                The WIHHMS Smart Sensor brings laboratory-quality testing to your home, providing 
+                The WIHMMScope brings laboratory-quality testing to your home, providing 
                 real-time insights into your health metrics with medical-grade accuracy.
               </p>
               

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, User, Eye, EyeOff, Sparkles } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
-
+import WIHHMSLogo from '../components/ui/WIHHMSLogo';
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const { register, isLoading, error, clearError } = useAuthStore();
@@ -66,18 +66,19 @@ const RegisterPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
         {/* Header */}
-        <motion.div 
-          className="text-center mb-8"
+       <motion.div 
+          className="flex flex-col items-center mb-8"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="w-8 h-8 text-white" />
+          <div className="w-20 h-20 flex items-center justify-center">
+            <WIHHMSLogo size="large" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Create your account</h1>
           <p className="text-gray-600">Join WIHHMS and start your health journey</p>
         </motion.div>
+
 
         {/* Registration Form */}
         <motion.div 

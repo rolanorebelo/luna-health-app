@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import WIHHMSLogo from '../components/ui/WIHHMSLogo';
 import { 
   Sparkles, 
   Camera, 
@@ -94,16 +95,20 @@ const WelcomePage: React.FC = () => {
       {/* Navigation */}
       <nav className="relative z-10 p-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl font-bold text-gray-900">WIHHMS</span>
-              <span className="text-lg text-gray-600">by</span>
-              <PhylacticsLogo size="large" variant="light" />
-            </div>
-          </div>
+         <div className="flex items-center">
+  {/* Logo (smaller wrapper, no extra padding) */}
+  <div className="flex items-center">
+    <WIHHMSLogo size="large" />
+  </div>
+
+  {/* Brand Text - just 2px away */}
+  <div className="flex items-center">
+    <span className="text-3xl font-bold text-gray-900">WIHHMS</span>
+    <span className="text-lg text-gray-600 ml-1 mr-2">by</span>
+    <PhylacticsLogo size="large" variant="light" />
+  </div>
+</div>
+
           <button
             onClick={() => navigate('/login')}
             className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
@@ -359,16 +364,16 @@ const WelcomePage: React.FC = () => {
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="flex items-center space-x-3 mb-4 md:mb-0">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xl font-bold">WIHHMS</span>
-                <span className="text-gray-400">by</span>
-                <PhylacticsLogo size="small" variant="dark" />
-              </div>
-            </div>
+           <div className="flex items-center space-x-1 mb-4 md:mb-0">
+  <div className="w-12 h-12 flex items-center justify-center">
+    <WIHHMSLogo size="large" />
+  </div>
+  <div className="flex items-center space-x-1">
+    <span className="text-xl font-bold">WIHHMS</span>
+    <span className="text-gray-400">by</span>
+    <PhylacticsLogo size="small" variant="dark" />
+  </div>
+</div>
             <div className="text-gray-400 text-sm">
               © 2024 Phylactics. Your health, your data, your choice.
             </div>

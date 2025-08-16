@@ -2,6 +2,7 @@ import React from 'react';
 import { User, LogOut, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../../stores/authStore';
+import WIHHMSLogo from '../ui/WIHHMSLogo';
 
 const PhylacticsLogo = ({ size = 'small', variant = 'light' }: { size?: 'small' | 'large', variant?: 'light' | 'dark' }) => (
   <div 
@@ -46,16 +47,20 @@ const Header: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex items-center space-x-2">
-              <h1 className="text-xl font-bold text-gray-900">WIHHMS</h1>
-              <span className="text-sm text-gray-600">by</span>
-              <PhylacticsLogo size="small" variant="light" />
-            </div>
-          </div>
+         <div className="flex items-center">
+  <div className="w-15 h-15 flex items-center justify-center">
+     <WIHHMSLogo size="large" />
+  </div>
+  <div className="flex flex-col">
+  <h1 className="text-xl font-bold text-gray-900 leading-tight">WIHHMS</h1>
+  <div className="flex items-center text-xs text-gray-600">
+    <span className="mr-1">by</span> {/* Add margin-right to "by" */}
+    <div className="flex items-center space-x-0.5"> {/* Reduce space between Phi and Phylactics */}
+      <PhylacticsLogo size="small" variant="light" />
+    </div>
+  </div>
+</div>
+</div>
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">

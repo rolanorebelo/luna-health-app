@@ -46,7 +46,7 @@ const Supplement: React.FC<SupplementProps> = ({ onOrderNow }) => {
           <Pill className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-gray-900">WIHHMS Gut Balance</h3>
+          <h3 className="text-xl font-bold text-gray-900">WHIMMS Pill</h3>
         </div>
       </div>
 

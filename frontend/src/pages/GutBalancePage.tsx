@@ -48,7 +48,7 @@ const Supplement: React.FC<SupplementProps> = ({ onOrderNow }) => {
           <Pill className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-gray-900">WIHHMS Gut Balance</h3>
+          <h3 className="text-xl font-bold text-gray-900">WHIMMS Pill</h3>
         </div>
       </div>
 
@@ -96,7 +96,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => (
 const GutBalancePage: React.FC = () => {
   const handleOrderNow = () => {
     // Handle supplement order
-    console.log('Ordering WIHHMS Gut Balance supplement');
+    console.log('Ordering WHIMMS Pill supplement');
     alert('Redirecting to checkout...');
   };
 
@@ -111,7 +111,7 @@ const GutBalancePage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">WIHHMS Gut Balance</h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">WHIMMS Pill</h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Advanced gut health formula specifically designed for women's unique microbiome needs
             </p>

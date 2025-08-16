@@ -398,16 +398,16 @@ const DashboardPage: React.FC = () => {
       </div>
       {/* Product & Technology Features */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* WIHHMS Gut Balance Supplement */}
+        {/* WHIMMS Pill Supplement */}
         <SupplementComponent 
           onOrderNow={() => {
             // Handle supplement order
-            console.log('Ordering WIHHMS Gut Balance supplement');
+            console.log('Ordering WHIMMS Pill supplement');
             // You could open a modal, navigate to checkout, etc.
           }}
         />
 
-        {/* WIHHMS Smart Sensor */}
+        {/* WIHMMScope */}
         <SensorComponent 
           onStartTest={() => {
             console.log('Starting sensor test');

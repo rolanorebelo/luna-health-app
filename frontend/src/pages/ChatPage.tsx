@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, Send, Camera, Sparkles, RefreshCw, Heart, Brain, Baby, Stethoscope, Moon, Apple, Shield, Droplet } from 'lucide-react';
-
+import WIHHMSLogo from '../components/ui/WIHHMSLogo';
 interface ChatMessage {
   id: string;
   type: 'user' | 'ai';
@@ -247,10 +247,12 @@ const ChatPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-              <Sparkles className="w-6 h-6" />
+              <div className="w-15 h-15 flex items-center justify-center">
+                   <WIHHMSLogo size="large" />
+                </div>
             </div>
             <div>
-              <h2 className="text-xl font-bold">WIHHMS AI Assistant</h2>
+              <h2 className="text-xl font-bold">WIHMMSy</h2>
               <p className="text-purple-100 text-sm">Specialized in women's health</p>
             </div>
           </div>

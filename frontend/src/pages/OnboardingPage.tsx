@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ChevronLeft, Heart, User, Calendar, Target, Stethoscope, Settings, CheckCircle, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../stores/authStore';
-
+import WIHHMSLogo from '../components/ui/WIHHMSLogo';
 interface OnboardingData {
   personalInfo: {
     firstName: string;
@@ -144,15 +144,15 @@ const OnboardingPage: React.FC = () => {
     'Other'
   ];
 
-  const steps = [
-    { id: 'welcome', title: 'Welcome to WIHHMS', icon: <Sparkles className="w-6 h-6" /> },
-    { id: 'personal', title: 'Personal Information', icon: <User className="w-6 h-6" /> },
-    { id: 'reproductive', title: 'Reproductive Health', icon: <Heart className="w-6 h-6" /> },
-    { id: 'goals', title: 'Health Goals', icon: <Target className="w-6 h-6" /> },
-    { id: 'medical', title: 'Medical History', icon: <Stethoscope className="w-6 h-6" /> },
-    { id: 'lifestyle', title: 'Lifestyle Factors', icon: <Calendar className="w-6 h-6" /> },
-    { id: 'preferences', title: 'Preferences', icon: <Settings className="w-6 h-6" /> },
-    { id: 'complete', title: 'Setup Complete', icon: <CheckCircle className="w-6 h-6" /> }
+  const steps = [ 
+    { id: 'welcome', title: 'Welcome to WIHHMS', icon: <Sparkles className="w-4 h-4" /> },
+    { id: 'personal', title: 'Personal Information', icon: <User className="w-4 h-4" /> },
+    { id: 'reproductive', title: 'Reproductive Health', icon: <Heart className="w-4 h-4" /> },
+    { id: 'goals', title: 'Health Goals', icon: <Target className="w-4 h-4" /> },
+    { id: 'medical', title: 'Medical History', icon: <Stethoscope className="w-4 h-4" /> },
+    { id: 'lifestyle', title: 'Lifestyle Factors', icon: <Calendar className="w-4 h-4" /> },
+    { id: 'preferences', title: 'Preferences', icon: <Settings className="w-4 h-4" /> },
+    { id: 'complete', title: 'Setup Complete', icon: <CheckCircle className="w-4 h-4" /> }
   ];
 
   const updateFormData = (section: keyof OnboardingData, field: string, value: any) => {
@@ -257,8 +257,8 @@ const OnboardingPage: React.FC = () => {
       case 'welcome':
         return (
           <motion.div className="text-center space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="w-24 h-24 bg-gradient-to-r from-purple-600 to-pink-600 rounded-3xl flex items-center justify-center mx-auto">
-              <Sparkles className="w-12 h-12 text-white" />
+            <div className="w-24 h-24  rounded-3xl flex items-center justify-center mx-auto">
+              <WIHHMSLogo size="large" />
             </div>
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Welcome to WIHHMS</h2>
@@ -877,7 +877,8 @@ const OnboardingPage: React.FC = () => {
                     ? 'bg-purple-600 text-white'
                     : 'bg-gray-200 text-gray-600'
                 }`}>
-                  {index < currentStep ? <CheckCircle className="w-4 h-4" /> : index + 1}
+                  {index < currentStep ? <CheckCircle className="w-4 h-4" /> : 
+                   index === currentStep ? step.icon : index + 1}
                 </div>
                 <span className="text-xs text-gray-600 mt-1 hidden md:block">{step.title}</span>
               </div>
