@@ -84,19 +84,7 @@ const WelcomePage: React.FC = () => {
           <span className={variant === 'dark' ? 'text-purple-500' : 'text-purple-600'}>C</span>
           <span className={variant === 'dark' ? 'text-purple-600' : 'text-purple-700'}>S</span>
         </span>
-        {size === 'large' && (
-          <>
-            <div className={`text-xs font-medium tracking-wide ${variant === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-              <span className={variant === 'dark' ? 'text-red-400' : 'text-red-500'}>EQUALITY</span> | 
-              <span className={variant === 'dark' ? 'text-orange-400' : 'text-orange-500'}> INNOVATION</span> | 
-              <span className={variant === 'dark' ? 'text-green-400' : 'text-green-500'}> QUALITY</span> | 
-              <span className={variant === 'dark' ? 'text-blue-400' : 'text-blue-500'}> CARE</span> |
-            </div>
-            <div className={`text-xs font-bold tracking-wide ${variant === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
-              REDEFINING HEALTH EQUALITY
-            </div>
-          </>
-        )}
+     
       </div>
     </div>
   );

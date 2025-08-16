@@ -1,11 +1,7 @@
 import React from 'react';
 import { User, LogOut, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-// Mock auth store for demo
-const useAuthStore = () => ({
-  profile: { firstName: 'Sarah' },
-  logout: () => console.log('Logging out...')
-});
+import useAuthStore from '../../stores/authStore';
 
 const PhylacticsLogo = ({ size = 'small', variant = 'light' }: { size?: 'small' | 'large', variant?: 'light' | 'dark' }) => (
   <div 
@@ -83,12 +79,12 @@ const Header: React.FC = () => {
 
             {/* Logout Button */}
             <button
-              onClick={handleLogout}
-              className="flex items-center space-x-2 p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden md:block text-sm">Logout</span>
-            </button>
+    onClick={handleLogout}
+    className="flex items-center space-x-2 p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900"
+  >
+    <LogOut className="w-4 h-4" />
+    <span className="hidden md:block text-sm">Logout</span>
+  </button>
           </div>
         </div>
       </div>
