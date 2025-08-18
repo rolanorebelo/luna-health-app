@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.sqlite3
+
+# VCS
+.git
+.gitignore
+
+# OS / tooling
+.DS_Store
+.vscode
+.idea
+*.log
+
+# Build artifacts
+dist/
+build/
+.eggs/
+*.egg-info/
+
+# If models are downloaded at runtime, ignore local caches
+/tmp/
