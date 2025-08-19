@@ -2,9 +2,7 @@ fastapi==0.104.1
 uvicorn==0.24.0
 python-multipart==0.0.6
 pillow==10.1.0
-numpy>=1.26.0
-torch==2.8.0
-torchvision==0.23.0
+numpy==1.26.4
 transformers==4.35.0
 openai==0.28.1
 langchain==0.0.340
@@ -12,9 +10,9 @@ chromadb==0.4.18
 python-dotenv==1.0.0
 pydantic==2.5.0
 aiofiles==23.2.1
-pydantic-settings>=2.0.0
-matplotlib>=3.8.0
-scipy>=1.12.0
-scikit-learn>=1.4.0
-opencv-python==4.8.1.78
-pandas>=2.0.0
+pydantic-settings==2.2.1
+matplotlib==3.8.4
+scipy==1.12.0
+scikit-learn==1.4.2
+opencv-python-headless==4.8.1.78
+pandas==2.0.3
