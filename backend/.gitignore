@@ -1,0 +1,26 @@
+# Python caches & envs
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.venv/
+venv/
+.env
+*.env
+
+# Pip artifacts
+**/*.egg-info/
+**/*.dist-info/
+**/site-packages/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Build
+build/
+dist/
+
+# (Optional) node stuff on frontend
+frontend/node_modules/
